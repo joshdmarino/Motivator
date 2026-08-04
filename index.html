@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>SnapMotivate</title>
   <style>
     :root {
@@ -16,109 +18,116 @@
       --border-gray: #2C2C2E;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; user-select: none; }
-    body { background-color: var(--bg-black); color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-black); color: white; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* Snapchat Header */
-    header { height: 60px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-black); border-bottom: 1px solid #121212; }
+    header { height: 56px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-black); border-bottom: 1px solid #121212; flex-shrink: 0; }
     
     .counter-badge { background: var(--card-gray); border: 1px solid var(--border-gray); padding: 6px 12px; border-radius: 20px; font-weight: 800; font-size: 13px; color: var(--snap-yellow); display: flex; align-items: center; gap: 6px; }
 
-    .header-actions { display: flex; gap: 8px; }
-    .icon-btn { background: var(--card-gray); border: none; color: #FFF; padding: 8px 12px; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .header-actions { display: flex; gap: 6px; }
+    .icon-btn { background: var(--card-gray); border: none; color: #FFF; padding: 8px 10px; border-radius: 18px; font-weight: 600; font-size: 12px; cursor: pointer; white-space: nowrap; }
 
-    /* Feed */
-    .feed { flex: 1; overflow-y: auto; padding: 4px 0; }
-    .snap-item { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid #121212; cursor: pointer; justify-content: space-between; }
+    .scenario-bar { background: #111; padding: 8px 14px; font-size: 12px; color: var(--text-gray); border-bottom: 1px solid #1a1a1a; display: none; }
+    .scenario-bar strong { color: #fff; }
+
+    .feed { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 0; }
+    .snap-item { display: flex; align-items: center; padding: 14px 14px; border-bottom: 1px solid #121212; cursor: pointer; justify-content: space-between; }
     .snap-item:active { background-color: #121212; }
-    .snap-item.locked-out { opacity: 0.4; }
+    .snap-item.locked-out { opacity: 0.35; }
+    .snap-item.active-now { background: #141414; border-left: 3px solid var(--snap-yellow); }
     
-    .left-section { display: flex; align-items: center; gap: 12px; }
+    .left-section { display: flex; align-items: center; gap: 12px; min-width: 0; }
 
-    /* Bitmoji Avatar */
-    .avatar-box { width: 52px; height: 52px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; border: 2px solid var(--border-gray); overflow: hidden; }
-    .avatar-svg { width: 44px; height: 44px; }
+    .avatar-box { width: 50px; height: 50px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; border: 2px solid var(--border-gray); overflow: hidden; }
+    .avatar-svg { width: 42px; height: 42px; }
 
-    .snap-info { display: flex; flex-direction: column; }
-    .snap-author { font-size: 16px; font-weight: 700; color: #FFF; }
-    .snap-sub { font-size: 13px; color: var(--text-gray); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+    .snap-info { display: flex; flex-direction: column; min-width: 0; }
+    .snap-author { font-size: 15px; font-weight: 700; color: #FFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+    .snap-sub { font-size: 12px; color: var(--text-gray); display: flex; align-items: center; gap: 5px; margin-top: 2px; }
 
-    /* Right Side Blocks */
-    .status-block { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .status-block { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .status-block.photo { background-color: var(--photo-red); }
     .status-block.video { background-color: var(--video-purple); }
     .status-block.opened { background-color: transparent; border: 2px solid var(--text-gray); }
     .status-block.locked { background-color: transparent; border: 2px dashed #444; }
 
-    /* Modals */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-    .modal-content { background: var(--card-gray); border-radius: 24px; padding: 24px; width: 100%; max-width: 350px; text-align: center; border: 1px solid var(--border-gray); max-height: 90vh; overflow-y: auto; }
-    .modal h2 { font-size: 20px; margin-bottom: 12px; font-weight: 800; }
-    .modal p { font-size: 14px; color: var(--text-gray); margin-bottom: 20px; line-height: 1.4; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(14px); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
+    .modal-content { background: var(--card-gray); border-radius: 22px; padding: 22px; width: 100%; max-width: 360px; text-align: center; border: 1px solid var(--border-gray); max-height: 88vh; overflow-y: auto; }
+    .modal h2 { font-size: 18px; margin-bottom: 8px; font-weight: 800; }
+    .modal p { font-size: 13px; color: var(--text-gray); margin-bottom: 16px; line-height: 1.45; }
     
-    .btn { width: 100%; padding: 14px; border-radius: 30px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; margin-bottom: 8px; }
+    .btn { width: 100%; padding: 14px; border-radius: 28px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; margin-bottom: 8px; }
     .btn-snap { background: var(--snap-yellow); color: #000; }
     .btn-secondary { background: var(--border-gray); color: #FFF; }
+    .btn-danger { background: #3a1515; color: #ff6b6b; }
 
-    /* Inputs */
-    .input-group { text-align: left; margin-bottom: 14px; }
-    .input-group label { display: block; font-size: 11px; color: var(--text-gray); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
-    .input-group input, .input-group textarea, .input-group select { width: 100%; padding: 12px; background: #2C2C2E; border: 1px solid var(--border-gray); border-radius: 12px; color: white; font-size: 14px; outline: none; }
+    .input-group { text-align: left; margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 11px; color: var(--text-gray); margin-bottom: 5px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.4px; }
+    .input-group input, .input-group textarea, .input-group select { width: 100%; padding: 11px; background: #2C2C2E; border: 1px solid var(--border-gray); border-radius: 11px; color: white; font-size: 14px; outline: none; }
 
-    /* Full Screen Viewer */
     .viewer { display: none; position: fixed; inset: 0; background: #000; z-index: 200; flex-direction: column; }
-    .viewer-media { width: 100%; height: 100%; object-fit: cover; }
-    .viewer-overlay { position: absolute; top: 0; left: 0; right: 0; padding: 24px 20px 20px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%); display: flex; align-items: center; gap: 12px; }
-    .viewer-caption-bar { position: absolute; bottom: 50px; left: 16px; right: 16px; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); padding: 14px 18px; border-radius: 20px; font-size: 15px; font-weight: 600; text-align: center; line-height: 1.4; border: 1px solid rgba(255,255,255,0.1); }
+    .viewer-media { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    .viewer-overlay { position: absolute; top: 0; left: 0; right: 0; padding: 48px 16px 16px; background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, transparent 100%); display: flex; align-items: center; gap: 10px; }
+    .viewer-caption-bar { position: absolute; bottom: 40px; left: 14px; right: 14px; background: rgba(0,0,0,0.7); backdrop-filter: blur(12px); padding: 13px 16px; border-radius: 18px; font-size: 14px; font-weight: 600; text-align: center; line-height: 1.4; border: 1px solid rgba(255,255,255,0.08); }
     
-    .timer-bar { position: absolute; top: 12px; left: 12px; right: 12px; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; z-index: 210; }
+    .timer-bar { position: absolute; top: 12px; left: 12px; right: 12px; height: 3px; background: rgba(255,255,255,0.25); border-radius: 2px; overflow: hidden; z-index: 210; }
     .timer-progress { height: 100%; background: white; width: 100%; }
+
+    .empty-state { text-align: center; padding: 50px 24px; color: var(--text-gray); font-size: 14px; line-height: 1.5; }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="counter-badge" id="taskCounterDisplay">
-      ✅ <span id="taskCount">0</span> Tasks
+    <div class="counter-badge">
+      ✅ <span id="taskCount">0</span>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" onclick="openModal('charModal')">👤 Roster</button>
-      <button class="icon-btn" onclick="openUploadModal()">+ Add Snap</button>
+      <button class="icon-btn" onclick="openModal('charModal')">Roster</button>
+      <button class="icon-btn" onclick="openUploadModal()">+ Snap</button>
+      <button class="icon-btn" onclick="confirmReset()">Reset</button>
     </div>
   </header>
 
-  <div class="feed" id="snapFeed">
-    <!-- Roster feeds here -->
+  <div class="scenario-bar" id="scenarioBar">
+    Current: <strong id="currentAgeDisplay">—</strong> · <strong id="currentCharDisplay">—</strong>
   </div>
+
+  <div class="feed" id="snapFeed"></div>
 
   <!-- Task Confirmation Modal -->
   <div class="modal" id="taskModal">
     <div class="modal-content">
-      <div id="taskAvatarPreview" style="margin-bottom:12px; display:flex; justify-content:center;"></div>
+      <div id="taskAvatarPreview" style="margin-bottom:10px; display:flex; justify-content:center;"></div>
       <h2 id="taskCharName">Unlock Snap</h2>
-      <p id="taskModalSubText">Confirm that you completed your task to unlock the next snap from your current story!</p>
+      <p id="taskModalSubText">Confirm you completed a real task to unlock the next snap.</p>
+      <div id="scenarioPreview" style="background:#2C2C2E; border-radius:12px; padding:10px; margin-bottom:16px; font-size:13px; color:#ccc; display:none;"></div>
       <button class="btn btn-snap" onclick="confirmTaskAndOpen()">Complete Task & View ✅</button>
       <button class="btn btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
     </div>
   </div>
 
-  <!-- Character Creation Modal -->
+  <!-- Character Roster Modal -->
   <div class="modal" id="charModal">
     <div class="modal-content">
       <h2>Character Roster</h2>
-      <div id="characterList" style="max-height: 140px; overflow-y: auto; margin-bottom: 16px; text-align: left;"></div>
+      <p style="font-size:12px; margin-bottom:12px;">All characters are 18+ adults (roleplay labels only).</p>
+      <div id="characterList" style="max-height: 220px; overflow-y: auto; margin-bottom: 14px; text-align: left;"></div>
       
-      <h3 style="font-size: 12px; text-align: left; margin-bottom: 8px; color: var(--text-gray); font-weight: 800;">NEW CHARACTER</h3>
+      <h3 style="font-size: 11px; text-align: left; margin-bottom: 8px; color: var(--text-gray); font-weight: 800;">ADD NEW</h3>
       <div class="input-group">
         <label>Name</label>
-        <input type="text" id="newCharName" placeholder="Enter character name...">
+        <input type="text" id="newCharName" placeholder="Character name...">
       </div>
-      <div class="input-group" style="display: flex; gap: 8px;">
+      <div class="input-group" style="display: flex; gap: 6px;">
         <div style="flex:1;">
           <label>Skin</label>
           <select id="newCharSkin">
             <option value="#F3D3BD">Fair</option>
+            <option value="#E0B090">Light</option>
             <option value="#D08B5B">Medium</option>
+            <option value="#A05A2C">Tan</option>
             <option value="#76390B">Deep</option>
           </select>
         </div>
@@ -127,20 +136,22 @@
           <select id="newCharHairStyle">
             <option value="long">Long</option>
             <option value="bob">Bob</option>
-            <option value="bun">Top Bun</option>
+            <option value="bun">Bun</option>
           </select>
         </div>
         <div style="flex:1;">
-          <label>Hair Color</label>
+          <label>Color</label>
           <select id="newCharHairColor">
             <option value="#1F1610">Black</option>
+            <option value="#3D2314">Brown</option>
             <option value="#C48E48">Blonde</option>
             <option value="#7D1E1E">Auburn</option>
             <option value="#A832A4">Purple</option>
+            <option value="#222">Dark</option>
           </select>
         </div>
       </div>
-      <button class="btn btn-snap" onclick="createCharacter()">Add to Roster</button>
+      <button class="btn btn-snap" onclick="createCharacter()">Add Character</button>
       <button class="btn btn-secondary" onclick="closeModal('charModal')">Close</button>
     </div>
   </div>
@@ -149,21 +160,21 @@
   <div class="modal" id="uploadModal">
     <div class="modal-content">
       <h2>Add Story Snap</h2>
-      <p style="font-size:12px; margin-bottom:12px;">Snaps play in the exact order you upload them for each character!</p>
+      <p style="font-size:12px; margin-bottom:12px;">Snaps play in the exact order you upload them for each character.</p>
       
       <div class="input-group">
-        <label>Assign To Character</label>
+        <label>Assign To</label>
         <select id="uploadCharSelect"></select>
       </div>
       <div class="input-group">
-        <label>Encouraging Message</label>
-        <textarea id="msgInput" rows="2" placeholder="Write a message for this step in the story..."></textarea>
+        <label>Caption / Message</label>
+        <textarea id="msgInput" rows="3" placeholder="Write the Snap caption..."></textarea>
       </div>
       <div class="input-group">
-        <label>Media File (Photo/Video)</label>
+        <label>Photo or Video</label>
         <input type="file" id="fileInput" accept="image/*,video/*">
       </div>
-      <button class="btn btn-snap" onclick="saveMedia()">Add Snap to Story</button>
+      <button class="btn btn-snap" onclick="saveMedia()">Add to Story</button>
       <button class="btn btn-secondary" onclick="closeModal('uploadModal')">Cancel</button>
     </div>
   </div>
@@ -173,44 +184,101 @@
     <div class="timer-bar"><div class="timer-progress" id="timerProgress"></div></div>
     <div class="viewer-overlay">
       <div id="viewerAvatar"></div>
-      <h3 id="viewerChar" style="font-size: 18px; font-weight: 700;"></h3>
+      <div>
+        <h3 id="viewerChar" style="font-size: 16px; font-weight: 700;"></h3>
+        <div id="viewerAge" style="font-size:11px; color:#aaa; margin-top:2px;"></div>
+      </div>
     </div>
     <div id="mediaContainer" style="width:100%; height:100%;"></div>
     <div class="viewer-caption-bar" id="viewerMsg"></div>
   </div>
 
   <script>
+    // ========== DATA ==========
+    const DEFAULT_CHARACTERS = [
+      "Ex girlfriend", "First crush", "Work crush", "Step sister", "Demon", "E girl",
+      "Average mommy", "Hot mommy", "Gym crush", "Bimbo mommy", "Scientist", "Only fans model",
+      "Foreign gold digger", "Little neighbor", "Hot highschooler", "90s babysitter", "90s model",
+      "Cartoon mommy", "Cartoon babysitter", "Goth mommy", "Average girlfriend", "Mixed girlfriend",
+      "Early 30s girlfriend", "Average highschooler", "New mom", "Preteen babysitter", "Fat mommy",
+      "Big sister", "Little sister", "Nurse", "Mormon", "Ex girlfriend cousin / cheerleader",
+      "Barista", "Young teacher", "Mommy content of creator", "Yoga instructor", "Single mom",
+      "Lesbian", "Alt mommy", "Divorcee", "Asian mommy", "Latina mommy", "Middle eastern mommy",
+      "Suburban mommy", "Tiny boobed mommy", "Indie mommy", "Trailer park mommy", "Rich mommy",
+      "Jewish mommy", "Braces", "Nanny", "Boss", "Young Stepmom", "Waitress", "Exs mom",
+      "Pierced mommy", "Hippie mommy", "Daughter", "Kindergartner", "Teen mom", "Lifeguard", "Youth group"
+    ];
+
+    const AGES = [
+      "Newborn", "1 year old", "2 years old", "Toddler", "3 years old", "4 years old",
+      "Heavily regressed", "Fully dependent", "Infant", "Very needy toddler"
+    ];
+
+    const SKINS = ["#F3D3BD", "#E0B090", "#D08B5B", "#A05A2C", "#76390B"];
+    const HAIR_STYLES = ["long", "bob", "bun"];
+    const HAIR_COLORS = ["#1F1610", "#3D2314", "#C48E48", "#7D1E1E", "#A832A4", "#222"];
+
     let db;
     let characters = JSON.parse(localStorage.getItem('sm_characters') || '[]');
     let totalTasksCompleted = parseInt(localStorage.getItem('sm_task_count') || '0');
     let activeCharacterId = localStorage.getItem('sm_active_char') || null;
+    let currentAge = localStorage.getItem('sm_current_age') || null;
     let selectedSnap = null;
     let timerInterval = null;
 
-    // Database Initialization
-    const dbReq = indexedDB.open("SnapMotivateDB_v3", 1);
+    // ========== INIT ==========
+    const dbReq = indexedDB.open("SnapMotivateDB_v4", 1);
     dbReq.onupgradeneeded = (e) => {
       db = e.target.result;
-      db.createObjectStore("mediaPool", { keyPath: "id", autoIncrement: true });
+      if (!db.objectStoreNames.contains("mediaPool")) {
+        db.createObjectStore("mediaPool", { keyPath: "id", autoIncrement: true });
+      }
     };
     dbReq.onsuccess = (e) => {
       db = e.target.result;
+      if (characters.length === 0) {
+        seedCharacters();
+      }
       updateTaskCounter();
+      updateScenarioBar();
       renderFeed();
     };
+
+    function seedCharacters() {
+      characters = DEFAULT_CHARACTERS.map((name, i) => ({
+        id: 'char_' + (Date.now() + i),
+        name: name,
+        skin: SKINS[i % SKINS.length],
+        hairStyle: HAIR_STYLES[i % HAIR_STYLES.length],
+        hairColor: HAIR_COLORS[i % HAIR_COLORS.length]
+      }));
+      localStorage.setItem('sm_characters', JSON.stringify(characters));
+    }
 
     function updateTaskCounter() {
       document.getElementById('taskCount').innerText = totalTasksCompleted;
       localStorage.setItem('sm_task_count', totalTasksCompleted);
     }
 
+    function updateScenarioBar() {
+      const bar = document.getElementById('scenarioBar');
+      if (activeCharacterId && currentAge) {
+        const char = characters.find(c => c.id === activeCharacterId);
+        document.getElementById('currentAgeDisplay').textContent = currentAge;
+        document.getElementById('currentCharDisplay').textContent = char ? char.name : '—';
+        bar.style.display = 'block';
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
     function openModal(id) { 
-      if(id === 'charModal') renderCharacterList();
+      if (id === 'charModal') renderCharacterList();
       document.getElementById(id).style.display = 'flex'; 
     }
 
     function openUploadModal() {
-      if(characters.length === 0) return alert('Please create at least one character first!');
+      if (characters.length === 0) return alert('Create at least one character first.');
       const select = document.getElementById('uploadCharSelect');
       select.innerHTML = '';
       characters.forEach(c => {
@@ -224,32 +292,35 @@
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // Enhanced Snapchat SVG Avatar Renderer
+    function confirmReset() {
+      if (confirm('This will erase ALL characters, snaps, and progress. Continue?')) {
+        localStorage.clear();
+        indexedDB.deleteDatabase("SnapMotivateDB_v4");
+        location.reload();
+      }
+    }
+
+    // ========== AVATARS ==========
     function generateBitmojiSVG(skin, style, hairColor) {
       let hairSVG = "";
       if (style === 'long') {
         hairSVG = `<path d="M 12,22 C 10,8 38,8 36,22 C 38,36 36,48 34,50 C 30,50 32,32 30,28 C 28,32 26,50 22,50 C 18,50 16,36 14,22 Z" fill="${hairColor}"/>`;
       } else if (style === 'bob') {
         hairSVG = `<path d="M 11,20 C 10,6 38,6 37,20 C 38,28 36,36 32,36 C 28,36 30,22 24,20 C 18,22 20,36 16,36 C 12,36 10,28 11,20 Z" fill="${hairColor}"/>`;
-      } else { // Top Bun
+      } else {
         hairSVG = `<circle cx="24" cy="7" r="7" fill="${hairColor}"/><path d="M 13,20 C 12,10 36,10 35,20 C 32,16 16,16 13,20 Z" fill="${hairColor}"/>`;
       }
 
       return `
         <svg class="avatar-svg" viewBox="0 0 48 52">
           ${hairSVG}
-          <!-- Neck & Shoulders -->
           <path d="M 18,38 L 30,38 L 33,52 L 15,52 Z" fill="${skin}"/>
-          <!-- Head Shape -->
           <path d="M 15,18 C 15,10 33,10 33,18 C 33,32 15,32 15,18 Z" fill="${skin}"/>
-          <!-- Eyes -->
           <ellipse cx="20" cy="20" rx="1.8" ry="2.2" fill="#222"/>
           <ellipse cx="28" cy="20" rx="1.8" ry="2.2" fill="#222"/>
           <path d="M 18,17 Q 20,16 22,17" stroke="#000" stroke-width="0.8" fill="none"/>
           <path d="M 26,17 Q 28,16 30,17" stroke="#000" stroke-width="0.8" fill="none"/>
-          <!-- Nose -->
           <path d="M 24,21 L 23.5,24 L 24.5,24" stroke="#D08B5B" stroke-width="0.8" fill="none"/>
-          <!-- Lips -->
           <path d="M 21,27 Q 24,30 27,27 Q 24,28 21,27 Z" fill="#E86F68"/>
         </svg>
       `;
@@ -257,7 +328,7 @@
 
     function createCharacter() {
       const name = document.getElementById('newCharName').value.trim();
-      if(!name) return alert('Enter a character name!');
+      if (!name) return alert('Enter a name');
 
       const char = {
         id: 'char_' + Date.now(),
@@ -276,21 +347,24 @@
 
     function renderCharacterList() {
       const container = document.getElementById('characterList');
-      container.innerHTML = characters.length === 0 ? '<div style="color:var(--text-gray); font-size:13px;">No characters added yet.</div>' : '';
+      container.innerHTML = characters.length === 0 
+        ? '<div style="color:var(--text-gray); font-size:13px;">No characters yet.</div>' 
+        : '';
       characters.forEach(c => {
         const div = document.createElement('div');
-        div.style.cssText = 'display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:14px;';
-        div.innerHTML = `${generateBitmojiSVG(c.skin, c.hairStyle, c.hairColor)} <b>${c.name}</b>`;
+        div.style.cssText = 'display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:13px;';
+        div.innerHTML = `${generateBitmojiSVG(c.skin, c.hairStyle, c.hairColor)} <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c.name}</span>`;
         container.appendChild(div);
       });
     }
 
+    // ========== MEDIA ==========
     async function saveMedia() {
       const charId = document.getElementById('uploadCharSelect').value;
       const message = document.getElementById('msgInput').value.trim();
       const file = document.getElementById('fileInput').files[0];
 
-      if (!message || !file) return alert('Please enter a message and choose a file!');
+      if (!message || !file) return alert('Need both a caption and a file.');
 
       const isVideo = file.type.startsWith('video');
       const transaction = db.transaction(["mediaPool"], "readwrite");
@@ -319,7 +393,7 @@
       feed.innerHTML = '';
 
       if (characters.length === 0) {
-        feed.innerHTML = `<div style="text-align:center; padding: 60px 20px; color: var(--text-gray); font-size:14px;">No characters in roster.<br>Tap <b>👤 Roster</b> to create your first character!</div>`;
+        feed.innerHTML = `<div class="empty-state">No characters.<br>Tap <b>Roster</b> to add some.</div>`;
         return;
       }
 
@@ -330,34 +404,41 @@
       req.onsuccess = () => {
         const allSnaps = req.result;
 
-        characters.forEach(char => {
-          // Get snaps for this character in creation order
+        // Sort characters: active first, then ones with unopened snaps, then rest
+        const sorted = [...characters].sort((a, b) => {
+          if (a.id === activeCharacterId) return -1;
+          if (b.id === activeCharacterId) return 1;
+          const aUnopened = allSnaps.filter(s => s.characterId === a.id && !s.opened).length;
+          const bUnopened = allSnaps.filter(s => s.characterId === b.id && !s.opened).length;
+          return bUnopened - aUnopened;
+        });
+
+        sorted.forEach(char => {
           const charSnaps = allSnaps.filter(s => s.characterId === char.id).sort((a,b) => a.createdOrder - b.createdOrder);
           const unopenedSnaps = charSnaps.filter(s => !s.opened);
           const nextSnap = unopenedSnaps[0] || null;
-
           const isCurrentActive = activeCharacterId === char.id;
           const isFinished = charSnaps.length > 0 && unopenedSnaps.length === 0;
 
           const div = document.createElement('div');
-          div.className = `snap-item ${activeCharacterId && !isCurrentActive ? 'locked-out' : ''}`;
+          div.className = `snap-item ${activeCharacterId && !isCurrentActive ? 'locked-out' : ''} ${isCurrentActive ? 'active-now' : ''}`;
           
-          let statusText = "No snaps uploaded";
+          let statusText = "No snaps";
           let statusClass = "locked";
           let statusIcon = "";
 
           if (charSnaps.length > 0) {
             if (isFinished) {
-              statusText = "Opened";
+              statusText = "Finished";
               statusClass = "opened";
-              statusIcon = `<svg width="14" height="14" fill="#8E8E93" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`;
+              statusIcon = `<svg width="12" height="12" fill="#8E8E93" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`;
             } else {
               const isPhoto = nextSnap.type === 'photo';
               statusText = isPhoto ? "New Snap" : "New Video";
               statusClass = isPhoto ? "photo" : "video";
               statusIcon = isPhoto 
-                ? `<svg width="14" height="14" fill="#FFF" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/></svg>`
-                : `<svg width="14" height="14" fill="#FFF" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>`;
+                ? `<svg width="12" height="12" fill="#FFF" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/></svg>`
+                : `<svg width="12" height="12" fill="#FFF" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>`;
             }
           }
 
@@ -370,7 +451,8 @@
                 <span class="snap-author">${char.name}</span>
                 <div class="snap-sub">
                   <span>${statusText}</span>
-                  ${nextSnap ? `• <span>${nextSnap.timestamp}</span>` : ''}
+                  ${nextSnap ? `• ${nextSnap.timestamp}` : ''}
+                  ${isCurrentActive ? ' • ACTIVE' : ''}
                 </div>
               </div>
             </div>
@@ -379,25 +461,40 @@
             </div>
           `;
 
-          div.onclick = () => handleFeedItemClick(char, nextSnap, unopenedSnaps.length, allSnaps);
+          div.onclick = () => handleFeedItemClick(char, nextSnap);
           feed.appendChild(div);
         });
       };
     }
 
-    function handleFeedItemClick(char, nextSnap, remainingUnopened, allSnaps) {
-      if (!nextSnap) return alert(`${char.name} has no unopened snaps right now! Add more snaps to her story.`);
+    function handleFeedItemClick(char, nextSnap) {
+      if (!nextSnap) {
+        return alert(`${char.name} has no unopened snaps left.\n\nUpload more snaps for her or finish other stories.`);
+      }
 
-      // If locked onto another character, block access
       if (activeCharacterId && activeCharacterId !== char.id) {
-        return alert(`You are currently receiving snaps from your current active motivator! Finish her story to unlock others.`);
+        return alert(`You are locked into the current caregiver's story.\nFinish her remaining snaps first (or Reset).`);
       }
 
       selectedSnap = nextSnap;
       selectedSnap.charData = char;
 
       document.getElementById('taskAvatarPreview').innerHTML = generateBitmojiSVG(char.skin, char.hairStyle, char.hairColor);
-      document.getElementById('taskCharName').innerText = `Snap from ${char.name}`;
+      document.getElementById('taskCharName').innerText = char.name;
+
+      // Show scenario info
+      const scenarioBox = document.getElementById('scenarioPreview');
+      if (!activeCharacterId) {
+        // New story starting – roll age
+        currentAge = AGES[Math.floor(Math.random() * AGES.length)];
+        localStorage.setItem('sm_current_age', currentAge);
+        scenarioBox.style.display = 'block';
+        scenarioBox.innerHTML = `New scenario<br><strong>You are a ${currentAge}</strong><br>Caregiver: <strong>${char.name}</strong>`;
+      } else {
+        scenarioBox.style.display = 'block';
+        scenarioBox.innerHTML = `Continuing<br><strong>${currentAge}</strong> with <strong>${char.name}</strong>`;
+      }
+
       openModal('taskModal');
     }
 
@@ -407,13 +504,13 @@
       totalTasksCompleted += 1;
       updateTaskCounter();
 
-      // Lock active character if not already assigned
+      // Lock active character if not set
       if (!activeCharacterId) {
         activeCharacterId = selectedSnap.charData.id;
         localStorage.setItem('sm_active_char', activeCharacterId);
       }
 
-      // Mark snap as opened
+      // Mark opened
       const transaction = db.transaction(["mediaPool"], "readwrite");
       const store = transaction.objectStore("mediaPool");
       selectedSnap.opened = true;
@@ -422,29 +519,35 @@
       store.put(selectedSnap);
 
       transaction.oncomplete = () => {
-        // Check if this character has any remaining unopened snaps
+        // Check remaining
         const checkTx = db.transaction(["mediaPool"], "readonly");
         const checkStore = checkTx.objectStore("mediaPool");
         const req = checkStore.getAll();
 
         req.onsuccess = () => {
           const remaining = req.result.filter(s => s.characterId === activeCharacterId && !s.opened);
+          
           if (remaining.length === 0) {
-            // Pick a new random active character for the NEXT task unlock
-            const eligibleChars = characters.filter(c => {
-              const charSnaps = req.result.filter(s => s.characterId === c.id && !s.opened);
-              return charSnaps.length > 0;
+            // Story finished – pick new random eligible character
+            const eligible = characters.filter(c => {
+              return req.result.some(s => s.characterId === c.id && !s.opened);
             });
 
-            if (eligibleChars.length > 0) {
-              const randomNext = eligibleChars[Math.floor(Math.random() * eligibleChars.length)];
-              activeCharacterId = randomNext.id;
+            if (eligible.length > 0) {
+              const next = eligible[Math.floor(Math.random() * eligible.length)];
+              activeCharacterId = next.id;
+              currentAge = AGES[Math.floor(Math.random() * AGES.length)];
               localStorage.setItem('sm_active_char', activeCharacterId);
+              localStorage.setItem('sm_current_age', currentAge);
             } else {
               activeCharacterId = null;
+              currentAge = null;
               localStorage.removeItem('sm_active_char');
+              localStorage.removeItem('sm_current_age');
             }
           }
+
+          updateScenarioBar();
           renderFeed();
           openViewer(selectedSnap, charDataCopy);
         };
@@ -455,12 +558,14 @@
       const viewer = document.getElementById('mediaViewer');
       const container = document.getElementById('mediaContainer');
       const charElem = document.getElementById('viewerChar');
+      const ageElem = document.getElementById('viewerAge');
       const avatarElem = document.getElementById('viewerAvatar');
       const msgElem = document.getElementById('viewerMsg');
       const progressBar = document.getElementById('timerProgress');
 
       container.innerHTML = '';
       charElem.innerText = char.name;
+      ageElem.innerText = currentAge ? `You are a ${currentAge}` : '';
       avatarElem.innerHTML = generateBitmojiSVG(char.skin, char.hairStyle, char.hairColor);
       msgElem.innerText = item.message;
 
@@ -477,23 +582,24 @@
         video.className = 'viewer-media';
         video.autoplay = true;
         video.playsInline = true;
+        video.muted = false;
         container.appendChild(video);
       }
 
       viewer.style.display = 'flex';
 
-      // Timer Animation
       progressBar.style.transition = 'none';
       progressBar.style.width = '100%';
       
       setTimeout(() => {
-        progressBar.style.transition = 'width 10s linear';
+        progressBar.style.transition = 'width 8s linear';
         progressBar.style.width = '0%';
-      }, 50);
+      }, 30);
 
+      clearTimeout(timerInterval);
       timerInterval = setTimeout(() => {
         closeViewer();
-      }, 10000);
+      }, 8000);
     }
 
     function closeViewer() {
