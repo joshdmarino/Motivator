@@ -30,7 +30,7 @@
     .sheet p { font-size: 13px; color: var(--gray); margin-bottom: 14px; line-height: 1.4; }
     .input-group { margin-bottom: 12px; text-align: left; }
     .input-group label { display: block; font-size: 11px; color: var(--gray); margin-bottom: 5px; font-weight: 700; text-transform: uppercase; }
-    input, select { width: 100%; padding: 12px; background: #2C2C2E; border: 1px solid var(--border); border-radius: 12px; color: #fff; font-size: 15px; outline: none; }
+    input { width: 100%; padding: 12px; background: #2C2C2E; border: 1px solid var(--border); border-radius: 12px; color: #fff; font-size: 15px; outline: none; }
     .btn { width: 100%; padding: 15px; border-radius: 28px; border: none; font-weight: 700; font-size: 15px; margin-bottom: 8px; }
     .btn-yellow { background: var(--yellow); color: #000; }
     .btn-gray { background: #2C2C2E; color: #fff; }
@@ -124,7 +124,22 @@
 </div>
 
 <script>
-// ========== FIXED 5-STEP STORIES ==========
+// ========== CHARACTER LIST ==========
+const CHARACTERS = [
+  "Ex girlfriend","First crush","Work crush","Step sister","Demon","E girl",
+  "Average mommy","Hot mommy","Gym crush","Bimbo mommy","Scientist","Only fans model",
+  "Foreign gold digger","Little neighbor","Hot highschooler","90s babysitter","90s model",
+  "Cartoon mommy","Cartoon babysitter","Goth mommy","Average girlfriend","Mixed girlfriend",
+  "Early 30s girlfriend","Average highschooler","New mom","Preteen babysitter","Fat mommy",
+  "Big sister","Little sister","Nurse","Mormon","Ex girlfriend cousin / cheerleader",
+  "Barista","Young teacher","Mommy content of creator","Yoga instructor","Single mom",
+  "Lesbian","Alt mommy","Divorcee","Asian mommy","Latina mommy","Middle eastern mommy",
+  "Suburban mommy","Tiny boobed mommy","Indie mommy","Trailer park mommy","Rich mommy",
+  "Jewish mommy","Braces","Nanny","Boss","Young Stepmom","Waitress","Exs mom",
+  "Pierced mommy","Hippie mommy","Daughter","Kindergartner","Teen mom","Lifeguard","Youth group"
+];
+
+// ========== FIXED STORIES ==========
 const STORIES = {
   "Average mommy": [
     { guide: "Clothed, soft everyday look, looking down at you bored", caption: "you finished something. good. you're my baby now." },
@@ -217,27 +232,12 @@ const STORIES = {
     { guide: "Closer strip-tease style, soft body", caption: "this is all the payment you get." },
     { guide: "Standing there exposed, slightly bored", caption: "enough. put your eyes down." }
   ],
-  // ===== DEFAULT / OTHER CHARACTERS =====
   "Ex girlfriend": [
     { guide: "Standing, arms crossed, looking down at you", caption: "you again. fine." },
     { guide: "Sitting, soft body language, unimpressed", caption: "you’re smaller than I remember." },
     { guide: "Lifting shirt just enough", caption: "this is temporary." },
     { guide: "One breast out, offering coldly", caption: "take it and shut up." },
     { guide: "Nursing while looking away", caption: "don’t get used to this." }
-  ],
-  "First crush": [
-    { guide: "Nervous but soft, looking at you", caption: "you actually did it. okay…" },
-    { guide: "Sitting closer, soft expression", caption: "you’re acting so little right now." },
-    { guide: "Hesitant shirt lift", caption: "just for a minute." },
-    { guide: "Soft breast offered shyly", caption: "here… if you need it." },
-    { guide: "Nursing, slightly embarrassed", caption: "okay. that’s enough." }
-  ],
-  "Work crush": [
-    { guide: "Still in work clothes, tired, looking at you", caption: "long day. you’re lucky I’m even here." },
-    { guide: "Kicking off shoes, soft body language", caption: "don’t make me regret this." },
-    { guide: "Blouse partially open", caption: "fine. a little." },
-    { guide: "Breast out, practical expression", caption: "quick. I have things to do." },
-    { guide: "Short nursing moment", caption: "done. go be quiet." }
   ],
   "Goth mommy": [
     { guide: "Black clothes, pale, looking down coldly", caption: "you finished. good for you." },
@@ -274,37 +274,16 @@ const STORIES = {
     { guide: "Soft breast out", caption: "only because you earned it." },
     { guide: "Short nursing moment", caption: "that’s enough for today." }
   ],
-  "Yoga instructor": [
-    { guide: "Yoga clothes, soft body, calm face", caption: "you showed up. good." },
-    { guide: "Sitting cross-legged, soft thighs", caption: "relax. you’re safe." },
-    { guide: "Top lifted, soft belly and underboob", caption: "breathe." },
-    { guide: "Breast offered calmly", caption: "take what you need." },
-    { guide: "Nursing, peaceful expression", caption: "good. stay present." }
-  ],
-  "New mom": [
-    { guide: "Soft postpartum body, tired but warm", caption: "you too? come here." },
-    { guide: "Sitting, soft belly visible", caption: "mommy has enough for both." },
-    { guide: "Nursing top or shirt open", caption: "here." },
-    { guide: "Soft breast offered", caption: "just like the baby." },
-    { guide: "Nursing while looking soft", caption: "good boy." }
-  ],
   "Boss": [
     { guide: "Work clothes, looking down at you firmly", caption: "you completed it. barely." },
     { guide: "Sitting, still in control", caption: "you’re not in charge here." },
     { guide: "Blouse partially open", caption: "this is a privilege." },
     { guide: "Breast offered coldly", caption: "take it. don’t speak." },
     { guide: "Short nursing, still dominant", caption: "enough. back to work later." }
-  ],
-  "Nanny": [
-    { guide: "Casual caregiver clothes, looking at you", caption: "you did your tasks. good." },
-    { guide: "Sitting ready, soft expression", caption: "time for your care." },
-    { guide: "Shirt or top adjusted", caption: "come closer." },
-    { guide: "Breast offered gently", caption: "here you go." },
-    { guide: "Nursing calmly", caption: "that’s it. good boy." }
   ]
 };
 
-// Fill remaining characters with a solid default nursing-leaning template
+// Default story for any character not specifically defined
 const DEFAULT_STORY = [
   { guide: "Clothed, looking down at you", caption: "you finished. come here." },
   { guide: "Sitting, soft body language", caption: "you’re acting so little." },
@@ -313,13 +292,8 @@ const DEFAULT_STORY = [
   { guide: "Nursing while looking at you or phone", caption: "good. stay quiet." }
 ];
 
-CHARACTERS.forEach(name => {
-  if (!STORIES[name]) STORIES[name] = DEFAULT_STORY;
-});
-
 // ========== APP STATE ==========
-const CHARACTERS = Object.keys(STORIES);
-let stories = JSON.parse(localStorage.getItem('sm_stories') || '{}');
+let savedStories = JSON.parse(localStorage.getItem('sm_stories') || '{}');
 let totalTasks = parseInt(localStorage.getItem('sm_tasks') || '0');
 let activeChar = localStorage.getItem('sm_active') || null;
 let currentAge = localStorage.getItem('sm_age') || null;
@@ -330,14 +304,14 @@ function updateUI() {
   document.getElementById('taskCount').textContent = totalTasks;
   const empty = document.getElementById('emptyState');
   const active = document.getElementById('activeState');
-  if (activeChar && stories[activeChar]) {
+  if (activeChar && savedStories[activeChar]) {
     empty.style.display = 'none';
     active.style.display = 'block';
     document.getElementById('dispAge').textContent = currentAge || '—';
     document.getElementById('dispChar').textContent = activeChar;
-    const total = stories[activeChar].length;
-    const done = stories[activeChar].filter(s => s.opened).length;
-    document.getElementById('dispProgress').textContent = `Snap ${Math.min(done+1, total)} of ${total}`;
+    const total = savedStories[activeChar].length;
+    const done = savedStories[activeChar].filter(s => s.opened).length;
+    document.getElementById('dispProgress').textContent = `Snap ${Math.min(done + 1, total)} of ${total}`;
   } else {
     empty.style.display = 'block';
     active.style.display = 'none';
@@ -348,31 +322,32 @@ function completeTask() {
   totalTasks++;
   localStorage.setItem('sm_tasks', totalTasks);
 
-  if (activeChar && stories[activeChar]) {
-    const next = stories[activeChar].find(s => !s.opened);
+  if (activeChar && savedStories[activeChar]) {
+    const next = savedStories[activeChar].find(s => !s.opened);
     if (next) {
       next.opened = true;
-      localStorage.setItem('sm_stories', JSON.stringify(stories));
+      localStorage.setItem('sm_stories', JSON.stringify(savedStories));
       showSnap(activeChar, next);
       updateUI();
       return;
     }
   }
 
-  // New random story
-  const ready = Object.keys(stories).filter(n => stories[n].some(s => !s.opened));
+  // Start new random story
+  const ready = Object.keys(savedStories).filter(n => savedStories[n].some(s => !s.opened));
   if (ready.length === 0) {
-    alert("No complete stories ready.\nBuild at least one first.");
+    alert("No complete stories ready.\n\nGo to Build and upload at least one full story first.");
     return;
   }
+
   activeChar = ready[Math.floor(Math.random() * ready.length)];
-  currentAge = ["Newborn","1 year old","2 years old","Toddler","3 years old","4 years old","Heavily regressed"][Math.floor(Math.random()*7)];
+  currentAge = ["Newborn","1 year old","2 years old","Toddler","3 years old","4 years old","Heavily regressed"][Math.floor(Math.random() * 7)];
   localStorage.setItem('sm_active', activeChar);
   localStorage.setItem('sm_age', currentAge);
 
-  const first = stories[activeChar].find(s => !s.opened);
+  const first = savedStories[activeChar].find(s => !s.opened);
   first.opened = true;
-  localStorage.setItem('sm_stories', JSON.stringify(stories));
+  localStorage.setItem('sm_stories', JSON.stringify(savedStories));
   showSnap(activeChar, first);
   updateUI();
 }
@@ -382,24 +357,38 @@ function showSnap(name, snap) {
   document.getElementById('viewerAge').textContent = currentAge ? `You are a ${currentAge}` : '';
   document.getElementById('viewerCaption').textContent = snap.caption;
   document.getElementById('viewerAvatar').innerHTML = makeAvatar(name);
+
   const box = document.getElementById('mediaBox');
   box.innerHTML = '';
-  if (snap.file) {
-    const url = URL.createObjectURL(snap.file);
+
+  if (snap.dataUrl) {
     if (snap.type === 'video') {
       const v = document.createElement('video');
-      v.src = url; v.className = 'viewer-media'; v.autoplay = true; v.playsInline = true;
+      v.src = snap.dataUrl;
+      v.className = 'viewer-media';
+      v.autoplay = true;
+      v.playsInline = true;
       box.appendChild(v);
     } else {
       const img = document.createElement('img');
-      img.src = url; img.className = 'viewer-media';
+      img.src = snap.dataUrl;
+      img.className = 'viewer-media';
       box.appendChild(img);
     }
+  } else {
+    box.innerHTML = `<div style="color:#666;padding:20px;text-align:center;">No media uploaded for this step</div>`;
   }
+
   document.getElementById('viewer').classList.add('show');
+
   const bar = document.getElementById('timerBar');
-  bar.style.transition = 'none'; bar.style.width = '100%';
-  setTimeout(() => { bar.style.transition = 'width 8s linear'; bar.style.width = '0%'; }, 30);
+  bar.style.transition = 'none';
+  bar.style.width = '100%';
+  setTimeout(() => {
+    bar.style.transition = 'width 8s linear';
+    bar.style.width = '0%';
+  }, 30);
+
   clearTimeout(timer);
   timer = setTimeout(closeViewer, 8000);
 }
@@ -421,11 +410,16 @@ function openBuilder() {
 }
 
 function filterChars() {
-  const q = document.getElementById('charSearch').value.toLowerCase();
+  const q = document.getElementById('charSearch').value.toLowerCase().trim();
   const list = document.getElementById('autoList');
-  if (!q) { list.style.display = 'none'; return; }
+  if (!q) {
+    list.style.display = 'none';
+    return;
+  }
   const matches = CHARACTERS.filter(c => c.toLowerCase().includes(q)).slice(0, 8);
-  list.innerHTML = matches.map(c => `<div class="autocomplete-item" onclick="pickChar('${c.replace(/'/g,"\\'")}')">${c}</div>`).join('');
+  list.innerHTML = matches.map(c => 
+    `<div class="autocomplete-item" onclick="pickChar('${c.replace(/'/g, "\\'")}')">${c}</div>`
+  ).join('');
   list.style.display = matches.length ? 'block' : 'none';
 }
 
@@ -434,13 +428,13 @@ function pickChar(name) {
   document.getElementById('charSearch').value = name;
   document.getElementById('autoList').style.display = 'none';
   document.getElementById('selectedBox').style.display = 'block';
-  document.getElementById('selectedBox').textContent = `Selected: ${name}`;
-  
+  document.getElementById('selectedBox').textContent = 'Selected: ' + name;
+
   const steps = STORIES[name] || DEFAULT_STORY;
   const container = document.getElementById('storySteps');
   container.innerHTML = steps.map((s, i) => `
     <div class="step-card">
-      <div class="step-num">STEP ${i+1}</div>
+      <div class="step-num">STEP ${i + 1}</div>
       <div class="step-guide">${s.guide}</div>
     </div>
   `).join('');
@@ -451,33 +445,68 @@ function pickChar(name) {
 
 function saveStory() {
   const files = document.getElementById('multiFiles').files;
-  if (!files || files.length < 1) return alert("Select the photos/videos first.");
+  if (!files || files.length === 0) {
+    alert('Please select the photos/videos first.');
+    return;
+  }
+
   const base = STORIES[selectedChar] || DEFAULT_STORY;
-  const saved = base.map((s, i) => ({
-    guide: s.guide,
-    caption: s.caption,
-    file: files[i] || null,
-    type: files[i] ? (files[i].type.startsWith('video') ? 'video' : 'photo') : null,
-    opened: false
-  }));
-  stories[selectedChar] = saved;
-  localStorage.setItem('sm_stories', JSON.stringify(stories));
-  alert(`Saved ${saved.length}-step story for ${selectedChar}`);
-  closeModal('builderModal');
-  updateUI();
+  const saved = [];
+
+  // Convert files to dataURLs so they survive page reloads
+  let processed = 0;
+  for (let i = 0; i < base.length; i++) {
+    saved.push({
+      guide: base[i].guide,
+      caption: base[i].caption,
+      type: null,
+      dataUrl: null,
+      opened: false
+    });
+  }
+
+  function finish() {
+    savedStories[selectedChar] = saved;
+    localStorage.setItem('sm_stories', JSON.stringify(savedStories));
+    alert('Story saved for ' + selectedChar);
+    closeModal('builderModal');
+    updateUI();
+  }
+
+  if (files.length === 0) {
+    finish();
+    return;
+  }
+
+  for (let i = 0; i < Math.min(files.length, base.length); i++) {
+    const file = files[i];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      saved[i].dataUrl = e.target.result;
+      saved[i].type = file.type.startsWith('video') ? 'video' : 'photo';
+      processed++;
+      if (processed === Math.min(files.length, base.length)) {
+        finish();
+      }
+    };
+    reader.readAsDataURL(file);
+  }
 }
 
 function openRoster() {
   document.getElementById('rosterList').innerHTML = CHARACTERS.map(c => {
-    const has = stories[c] ? ` ✓ ${stories[c].length} snaps` : '';
-    return `<div style="padding:9px 0;border-bottom:1px solid #2C2C2E;">${c}<span style="color:var(--gray);font-size:12px;">${has}</span></div>`;
+    const has = savedStories[c] ? ' ✓' : '';
+    return `<div style="padding:9px 0;border-bottom:1px solid #2C2C2E;">${c}<span style="color:var(--gray);">${has}</span></div>`;
   }).join('');
   document.getElementById('rosterModal').classList.add('show');
 }
 
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
 function doReset() {
-  if (confirm("Erase everything?")) {
+  if (confirm('Erase all stories and progress?')) {
     localStorage.clear();
     location.reload();
   }
@@ -485,8 +514,8 @@ function doReset() {
 
 function makeAvatar(name) {
   const i = CHARACTERS.indexOf(name);
-  const skin = ["#F3D3BD","#E0B090","#D08B5B","#A05A2C","#76390B"][i % 5];
-  const col = ["#1F1610","#3D2314","#C48E48","#7D1E1E","#222"][i % 5];
+  const skin = ['#F3D3BD','#E0B090','#D08B5B','#A05A2C','#76390B'][i % 5];
+  const col = ['#1F1610','#3D2314','#C48E48','#7D1E1E','#222'][i % 5];
   return `<svg width="40" height="42" viewBox="0 0 48 52">
     <circle cx="24" cy="8" r="6" fill="${col}"/>
     <path d="M14,20 C13,10 35,10 34,20 C32,16 16,16 14,20 Z" fill="${col}"/>
@@ -497,6 +526,7 @@ function makeAvatar(name) {
   </svg>`;
 }
 
+// Initialize
 updateUI();
 </script>
 </body>
