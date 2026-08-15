@@ -1,533 +1,326 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>SnapMotivate</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Regression Tracker</title>
   <style>
     :root {
-      --bg: #000; --card: #1C1C1E; --yellow: #FFFC00; --gray: #8E8E93; --border: #2C2C2E;
+      --bg: #0f0f12;
+      --card: #1c1c22;
+      --accent: #e85d75;
+      --text: #f0f0f5;
+      --muted: #8a8a9a;
+      --success: #4ade80;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-    header { height: 52px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #111; }
-    .counter { background: var(--card); border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; font-weight: 800; font-size: 13px; color: var(--yellow); }
-    .hbtn { background: var(--card); border: none; color: #fff; padding: 7px 11px; border-radius: 16px; font-size: 12px; font-weight: 600; margin-left: 6px; }
-    .main { flex: 1; overflow-y: auto; padding: 20px 16px; }
-    .scenario-card { background: var(--card); border-radius: 20px; padding: 22px 18px; margin-bottom: 24px; border: 1px solid var(--border); }
-    .scenario-card.empty { text-align: center; color: var(--gray); padding: 40px 20px; }
-    .scenario-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray); margin-bottom: 6px; font-weight: 700; }
-    .scenario-age { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
-    .scenario-char { font-size: 16px; color: #ddd; margin-bottom: 12px; }
-    .progress-text { font-size: 13px; color: var(--gray); }
-    .big-btn { width: 100%; padding: 20px; border-radius: 30px; border: none; background: var(--yellow); color: #000; font-size: 18px; font-weight: 800; margin-bottom: 14px; }
-    .sec-btn { width: 100%; padding: 14px; border-radius: 18px; border: none; background: var(--card); color: #fff; font-size: 13px; font-weight: 600; }
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(16px); z-index: 100; align-items: flex-end; justify-content: center; }
-    .modal.show { display: flex; }
-    .sheet { background: var(--card); width: 100%; max-width: 500px; border-radius: 24px 24px 0 0; padding: 20px 18px 40px; max-height: 92vh; overflow-y: auto; }
-    .sheet h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
-    .sheet p { font-size: 13px; color: var(--gray); margin-bottom: 14px; line-height: 1.4; }
-    .input-group { margin-bottom: 12px; text-align: left; }
-    .input-group label { display: block; font-size: 11px; color: var(--gray); margin-bottom: 5px; font-weight: 700; text-transform: uppercase; }
-    input { width: 100%; padding: 12px; background: #2C2C2E; border: 1px solid var(--border); border-radius: 12px; color: #fff; font-size: 15px; outline: none; }
-    .btn { width: 100%; padding: 15px; border-radius: 28px; border: none; font-weight: 700; font-size: 15px; margin-bottom: 8px; }
-    .btn-yellow { background: var(--yellow); color: #000; }
-    .btn-gray { background: #2C2C2E; color: #fff; }
-    .step-card { background: #2C2C2E; border-radius: 14px; padding: 13px; margin-bottom: 9px; text-align: left; }
-    .step-num { font-size: 11px; color: var(--yellow); font-weight: 800; margin-bottom: 3px; }
-    .step-guide { font-size: 14px; font-weight: 600; line-height: 1.35; }
-    .autocomplete-list { background: #2C2C2E; border-radius: 12px; max-height: 180px; overflow-y: auto; margin-top: 4px; display: none; }
-    .autocomplete-item { padding: 12px 14px; border-bottom: 1px solid #333; font-size: 14px; }
-    .viewer { display: none; position: fixed; inset: 0; background: #000; z-index: 200; flex-direction: column; }
-    .viewer.show { display: flex; }
-    .viewer-media { width: 100%; height: 100%; object-fit: contain; }
-    .viewer-top { position: absolute; top: 0; left: 0; right: 0; padding: 48px 16px 16px; background: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent); display: flex; align-items: center; gap: 10px; }
-    .viewer-caption { position: absolute; bottom: 36px; left: 14px; right: 14px; background: rgba(0,0,0,0.78); backdrop-filter: blur(12px); padding: 14px 16px; border-radius: 18px; font-size: 15px; font-weight: 600; text-align: center; line-height: 1.4; }
-    .timer-bar { position: absolute; top: 12px; left: 12px; right: 12px; height: 3px; background: rgba(255,255,255,0.25); border-radius: 2px; z-index: 210; }
-    .timer-progress { height: 100%; background: #fff; width: 100%; }
-    .avatar-box { width: 42px; height: 42px; border-radius: 50%; background: #222; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      max-width: 430px;
+      margin: 0 auto;
+      overflow-x: hidden;
+    }
+
+    /* Status bar mock */
+    .status-bar {
+      height: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    /* Header */
+    header {
+      padding: 8px 20px 16px;
+      text-align: center;
+    }
+
+    .age-label {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .age-value {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin: 4px 0;
+      color: var(--accent);
+    }
+
+    .age-sub {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* Main photo area */
+    .photo-area {
+      flex: 1;
+      margin: 0 16px;
+      background: var(--card);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 380px;
+    }
+
+    .photo-placeholder {
+      flex: 1;
+      background: linear-gradient(145deg, #2a2a32, #1a1a20);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 15px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .caption {
+      padding: 16px 18px;
+      background: #16161c;
+      font-size: 15px;
+      line-height: 1.45;
+      border-top: 1px solid #2a2a32;
+    }
+
+    .caption strong {
+      color: var(--accent);
+    }
+
+    /* Action button */
+    .action-bar {
+      padding: 20px 16px 12px;
+    }
+
+    .log-btn {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 18px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .log-btn:active {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+
+    .points {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Caregiver tray */
+    .tray {
+      padding: 12px 16px 28px;
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tray::-webkit-scrollbar {
+      display: none;
+    }
+
+    .caregiver {
+      flex-shrink: 0;
+      text-align: center;
+      width: 64px;
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #2a2a32;
+      border: 2px solid #3a3a44;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin: 0 auto 6px;
+      position: relative;
+    }
+
+    .avatar.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(232, 93, 117, 0.25);
+    }
+
+    .avatar.locked {
+      opacity: 0.4;
+      filter: grayscale(1);
+    }
+
+    .name {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .name.active {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Tiny progress dots under age */
+    .progress-dots {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #2a2a32;
+    }
+
+    .dot.filled {
+      background: var(--accent);
+    }
   </style>
 </head>
 <body>
-<header>
-  <div class="counter">✅ <span id="taskCount">0</span></div>
-  <div>
-    <button class="hbtn" onclick="openBuilder()">Build</button>
-    <button class="hbtn" onclick="openRoster()">Roster</button>
-    <button class="hbtn" onclick="doReset()">Reset</button>
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>Regression</span>
+    <span>100%</span>
   </div>
-</header>
 
-<div class="main">
-  <div class="scenario-card" id="scenarioCard">
-    <div class="empty" id="emptyState">
-      <div style="font-size:15px;margin-bottom:8px;">No active scenario</div>
-      <div style="font-size:13px;">Complete a task to start a random story</div>
-    </div>
-    <div id="activeState" style="display:none;">
-      <div class="scenario-label">Current Scenario</div>
-      <div class="scenario-age" id="dispAge">—</div>
-      <div class="scenario-char" id="dispChar">—</div>
-      <div class="progress-text" id="dispProgress">—</div>
-    </div>
-  </div>
-  <button class="big-btn" id="mainBtn" onclick="completeTask()">I Completed a Task ✅</button>
-  <button class="sec-btn" onclick="openBuilder()">Build / Upload Story</button>
-</div>
+  <header>
+    <div class="age-label">Current Age</div>
+    <div class="age-value" id="ageDisplay">24</div>
+    <div class="age-sub" id="ageSub">Still pretending to be a husband</div>
+    <div class="progress-dots" id="dots"></div>
+  </header>
 
-<!-- BUILDER -->
-<div class="modal" id="builderModal">
-  <div class="sheet">
-    <h2>Build Story</h2>
-    <p>Pick a character. You’ll see her fixed 5-step story and exactly what to upload for each step.</p>
-    <div class="input-group">
-      <label>Character</label>
-      <input type="text" id="charSearch" placeholder="Start typing..." oninput="filterChars()" autocomplete="off">
-      <div class="autocomplete-list" id="autoList"></div>
+  <div class="photo-area">
+    <div class="photo-placeholder" id="photo">
+      Wife is waiting.<br>Log a set to see what she has for you.
     </div>
-    <div id="selectedBox" style="display:none;margin-bottom:12px;padding:10px;background:#2C2C2E;border-radius:12px;font-size:14px;"></div>
-    <div id="storySteps" style="display:none;"></div>
-    <div id="uploadZone" style="display:none;margin-top:12px;">
-      <div class="input-group">
-        <label>Select 5 photos/videos in exact order</label>
-        <input type="file" id="multiFiles" accept="image/*,video/*" multiple>
-      </div>
-      <button class="btn btn-yellow" onclick="saveStory()">Save Story</button>
-    </div>
-    <button class="btn btn-gray" onclick="closeModal('builderModal')">Close</button>
-  </div>
-</div>
-
-<!-- ROSTER -->
-<div class="modal" id="rosterModal">
-  <div class="sheet">
-    <h2>Roster</h2>
-    <p style="font-size:12px;">All characters are 18+ adults.</p>
-    <div id="rosterList" style="max-height:65vh;overflow-y:auto;text-align:left;font-size:14px;"></div>
-    <button class="btn btn-gray" style="margin-top:14px;" onclick="closeModal('rosterModal')">Close</button>
-  </div>
-</div>
-
-<!-- VIEWER -->
-<div class="viewer" id="viewer" onclick="closeViewer()">
-  <div class="timer-bar"><div class="timer-progress" id="timerBar"></div></div>
-  <div class="viewer-top">
-    <div class="avatar-box" id="viewerAvatar"></div>
-    <div>
-      <div id="viewerName" style="font-weight:700;font-size:16px;"></div>
-      <div id="viewerAge" style="font-size:12px;color:#aaa;"></div>
+    <div class="caption" id="caption">
+      <strong>Wife:</strong> “Finish your sets like a good boy and maybe I’ll let you nurse later… if you earn it.”
     </div>
   </div>
-  <div id="mediaBox" style="flex:1;display:flex;align-items:center;justify-content:center;"></div>
-  <div class="viewer-caption" id="viewerCaption"></div>
-</div>
 
-<script>
-// ========== CHARACTER LIST ==========
-const CHARACTERS = [
-  "Ex girlfriend","First crush","Work crush","Step sister","Demon","E girl",
-  "Average mommy","Hot mommy","Gym crush","Bimbo mommy","Scientist","Only fans model",
-  "Foreign gold digger","Little neighbor","Hot highschooler","90s babysitter","90s model",
-  "Cartoon mommy","Cartoon babysitter","Goth mommy","Average girlfriend","Mixed girlfriend",
-  "Early 30s girlfriend","Average highschooler","New mom","Preteen babysitter","Fat mommy",
-  "Big sister","Little sister","Nurse","Mormon","Ex girlfriend cousin / cheerleader",
-  "Barista","Young teacher","Mommy content of creator","Yoga instructor","Single mom",
-  "Lesbian","Alt mommy","Divorcee","Asian mommy","Latina mommy","Middle eastern mommy",
-  "Suburban mommy","Tiny boobed mommy","Indie mommy","Trailer park mommy","Rich mommy",
-  "Jewish mommy","Braces","Nanny","Boss","Young Stepmom","Waitress","Exs mom",
-  "Pierced mommy","Hippie mommy","Daughter","Kindergartner","Teen mom","Lifeguard","Youth group"
-];
+  <div class="action-bar">
+    <button class="log-btn" onclick="logSet()">Log Completed Set</button>
+    <div class="points">Points this session: <span id="points">0</span></div>
+  </div>
 
-// ========== FIXED STORIES ==========
-const STORIES = {
-  "Average mommy": [
-    { guide: "Clothed, soft everyday look, looking down at you bored", caption: "you finished something. good. you're my baby now." },
-    { guide: "Lifting or adjusting bra, soft underboob visible", caption: "hold still. mommy needs to get ready." },
-    { guide: "One soft breast out of bra, offering it", caption: "open up. this is what you get." },
-    { guide: "Close nursing shot, breast in mouth, tired face", caption: "good boy. just suck and be quiet." },
-    { guide: "Still nursing while looking at phone", caption: "keep going. mommy's busy." }
-  ],
-  "Demon": [
-    { guide: "Standing in doorway, college clothes, smirking", caption: "welcome home. you look smaller already." },
-    { guide: "Closer, hand on your shoulder, looking down", caption: "college is over. you're not that person anymore." },
-    { guide: "Sitting on bed, soft body, looking at you like a child", caption: "this is your place now. on the floor." },
-    { guide: "Soft breast offered, dark/mean expression", caption: "take it. this is what you are." },
-    { guide: "Nursing while holding your head down", caption: "good little thing. stay like this." }
-  ],
-  "E girl": [
-    { guide: "Mirror selfie style, e-girl makeup, looking bored", caption: "you’re home. cute. you’re a baby now though." },
-    { guide: "Sitting cross-legged, soft thighs, looking down", caption: "stop talking like a grown-up. it doesn’t work." },
-    { guide: "Shirt lifted, soft belly and underboob", caption: "this is all you get to look at." },
-    { guide: "Breast out, offering, phone in other hand", caption: "latch. and stay quiet." },
-    { guide: "Nursing close-up while scrolling", caption: "good. this is your new normal." }
-  ],
-  "Bimbo mommy": [
-    { guide: "Overly made-up, soft body, standing over you", caption: "aww look at you. college boy is gone." },
-    { guide: "Leaning forward, heavy soft cleavage", caption: "you’re just a baby now. say it." },
-    { guide: "Pulling top down, soft breasts out", caption: "come here. mommy will take care of it." },
-    { guide: "Nursing, exaggerated soft expression", caption: "that’s it. suck like a good baby." },
-    { guide: "Still nursing, looking pleased with herself", caption: "see? this is better for you." }
-  ],
-  "Hot mommy": [
-    { guide: "Attractive but soft, standing in doorway", caption: "you’re back. and you’re smaller." },
-    { guide: "Sitting on edge of bed, looking down at you", caption: "no more adult talk. you’re my baby." },
-    { guide: "Shirt open, soft breasts visible", caption: "this is what you need now." },
-    { guide: "Close nursing shot", caption: "good. just stay on me." },
-    { guide: "Nursing while stroking your hair condescendingly", caption: "such a good little boy." }
-  ],
-  "Gym crush": [
-    { guide: "In bed, casual clothes, looking at you", caption: "come here. lie down." },
-    { guide: "Talking to you from the pillow, soft face", caption: "you did good today. you can have this." },
-    { guide: "Lifting shirt, soft underboob and belly", caption: "just for a little bit." },
-    { guide: "Breast offered in bed", caption: "open. slowly." },
-    { guide: "Nursing in bed, calm expression", caption: "good. stay quiet and take it." }
-  ],
-  "Step sister": [
-    { guide: "Standing over you, smirking, casual clothes", caption: "look at you. getting smaller already." },
-    { guide: "Teasing with ass, looking back over shoulder", caption: "still think you’re a tween? cute." },
-    { guide: "Closer, soft ass and thighs dominating the frame", caption: "you’re not that big anymore." },
-    { guide: "Sitting down, soft breast out", caption: "now you’re a baby. take it." },
-    { guide: "Nursing while looking down meanly", caption: "this is where you belong." }
-  ],
-  "90s babysitter": [
-    { guide: "90s casual clothes, sitting on couch, looking at you", caption: "parents aren’t home. you’re mine for a while." },
-    { guide: "Lighting a cigarette, bored expression", caption: "you didn’t see this. understand?" },
-    { guide: "Pulling one breast out of shirt while smoking", caption: "you can look. that’s it." },
-    { guide: "Holding breast out, cigarette in other hand", caption: "you can touch yourself if you promise not to tell." },
-    { guide: "Watching you, still smoking, soft breast visible", caption: "good. hurry up before they get back." }
-  ],
-  "Little sister": [
-    { guide: "Bathroom doorway, casual clothes, looking at you", caption: "come on. shower time." },
-    { guide: "In shower, back turned, soft body outline", caption: "don’t be weird. just wash." },
-    { guide: "Turning slightly, perky soft body visible", caption: "you’re staring. pathetic." },
-    { guide: "Closer, water running, soft chest and belly", caption: "this is all you get." },
-    { guide: "Looking down at you with water on skin", caption: "done looking? good." }
-  ],
-  "Early 30s girlfriend": [
-    { guide: "In bathrobe, tired face, looking at you", caption: "you finished your thing. come here." },
-    { guide: "Sitting on bed in robe, soft legs", caption: "you’ve been good. a little reward." },
-    { guide: "Opening robe slowly, soft breasts appearing", caption: "just look for now." },
-    { guide: "Robe open, soft tits fully visible", caption: "this is what you get." },
-    { guide: "Holding robe open, calm expression", caption: "enough. close it when you’re done staring." }
-  ],
-  "Hot highschooler": [
-    { guide: "Sitting on bed, young-looking but adult, teasing smile", caption: "you want this so bad it’s embarrassing." },
-    { guide: "Lifting shirt, soft breasts out", caption: "here. look all you want." },
-    { guide: "Turning and bending over bed, ass out", caption: "and this. you wish you could." },
-    { guide: "Looking back over shoulder while bent", caption: "pathetic how much you want to fuck me." },
-    { guide: "Standing again, still half exposed, smirking", caption: "too bad. you’re not allowed." }
-  ],
-  "Scientist": [
-    { guide: "Lab coat on, glasses, looking at clipboard then at you", caption: "subject is regressing as expected." },
-    { guide: "Opening lab coat slightly, soft body underneath", caption: "further regression confirmed." },
-    { guide: "Lab coat open, soft breasts visible", caption: "feeding protocol now." },
-    { guide: "Offering breast while still in open lab coat", caption: "latch. data collection in progress." },
-    { guide: "Nursing while making notes on phone", caption: "good response. continue." }
-  ],
-  "Foreign gold digger": [
-    { guide: "Standing, nice clothes, looking at you calculating", caption: "you did something useful. maybe you get a treat." },
-    { guide: "Slowly unbuttoning or lifting top", caption: "watch. this is expensive." },
-    { guide: "Top open, soft breasts out, still looking at you", caption: "you like this? of course you do." },
-    { guide: "Closer strip-tease style, soft body", caption: "this is all the payment you get." },
-    { guide: "Standing there exposed, slightly bored", caption: "enough. put your eyes down." }
-  ],
-  "Ex girlfriend": [
-    { guide: "Standing, arms crossed, looking down at you", caption: "you again. fine." },
-    { guide: "Sitting, soft body language, unimpressed", caption: "you’re smaller than I remember." },
-    { guide: "Lifting shirt just enough", caption: "this is temporary." },
-    { guide: "One breast out, offering coldly", caption: "take it and shut up." },
-    { guide: "Nursing while looking away", caption: "don’t get used to this." }
-  ],
-  "Goth mommy": [
-    { guide: "Black clothes, pale, looking down coldly", caption: "you finished. good for you." },
-    { guide: "Sitting, soft thighs, dark expression", caption: "you’re such a needy little thing." },
-    { guide: "Lifting black shirt, soft pale body", caption: "this is what you want." },
-    { guide: "Breast offered with bored face", caption: "take it. don’t thank me." },
-    { guide: "Nursing while ignoring you", caption: "stay quiet or I stop." }
-  ],
-  "Fat mommy": [
-    { guide: "Soft heavy body, casual clothes, looking down", caption: "come here baby." },
-    { guide: "Sitting, soft belly and thighs prominent", caption: "you need this." },
-    { guide: "Lifting shirt over soft heavy breasts", caption: "open up." },
-    { guide: "Heavy soft breast offered", caption: "good. take all of it." },
-    { guide: "Nursing, soft body surrounding you", caption: "that’s my good boy." }
-  ],
-  "Single mom": [
-    { guide: "Tired, soft body, messy bun, looking at you", caption: "you did your thing. now come here." },
-    { guide: "Sitting on couch, soft everyday look", caption: "mommy’s tired but you can have this." },
-    { guide: "Pulling top down", caption: "just for a bit." },
-    { guide: "Nursing while half-watching TV", caption: "quiet. good." },
-    { guide: "Still nursing, soft expression", caption: "okay. almost done." }
-  ],
-  "Nurse": [
-    { guide: "Scrubs, professional but soft, looking at you", caption: "vitals are fine. time for care." },
-    { guide: "Sitting, soft body under scrubs", caption: "you’re due for feeding." },
-    { guide: "Opening scrub top", caption: "standard procedure." },
-    { guide: "Breast offered clinically", caption: "latch properly." },
-    { guide: "Nursing while checking phone", caption: "good response. continue." }
-  ],
-  "Young teacher": [
-    { guide: "Soft professional clothes, looking down at you", caption: "you finished your work. good boy." },
-    { guide: "Sitting at edge of desk or bed", caption: "you’re acting so little right now." },
-    { guide: "Blouse loosened", caption: "special reward." },
-    { guide: "Soft breast out", caption: "only because you earned it." },
-    { guide: "Short nursing moment", caption: "that’s enough for today." }
-  ],
-  "Boss": [
-    { guide: "Work clothes, looking down at you firmly", caption: "you completed it. barely." },
-    { guide: "Sitting, still in control", caption: "you’re not in charge here." },
-    { guide: "Blouse partially open", caption: "this is a privilege." },
-    { guide: "Breast offered coldly", caption: "take it. don’t speak." },
-    { guide: "Short nursing, still dominant", caption: "enough. back to work later." }
-  ]
-};
+  <div class="tray" id="tray">
+    <!-- populated by JS -->
+  </div>
 
-// Default story for any character not specifically defined
-const DEFAULT_STORY = [
-  { guide: "Clothed, looking down at you", caption: "you finished. come here." },
-  { guide: "Sitting, soft body language", caption: "you’re acting so little." },
-  { guide: "Lifting or opening top", caption: "this is what you get." },
-  { guide: "Soft breast offered", caption: "open up." },
-  { guide: "Nursing while looking at you or phone", caption: "good. stay quiet." }
-];
+  <script>
+    // --- State ---
+    let currentAge = 24;
+    let points = 0;
+    let step = 0;
 
-// ========== APP STATE ==========
-let savedStories = JSON.parse(localStorage.getItem('sm_stories') || '{}');
-let totalTasks = parseInt(localStorage.getItem('sm_tasks') || '0');
-let activeChar = localStorage.getItem('sm_active') || null;
-let currentAge = localStorage.getItem('sm_age') || null;
-let selectedChar = null;
-let timer = null;
+    const caregivers = [
+      { name: "Wife", emoji: "💍", unlocked: true, active: true },
+      { name: "Ex", emoji: "💔", unlocked: true, active: false },
+      { name: "Nurse", emoji: "🩺", unlocked: false, active: false },
+      { name: "Gym", emoji: "🏋️", unlocked: false, active: false },
+      { name: "Boss", emoji: "💼", unlocked: false, active: false },
+      { name: "Stepmom", emoji: "👠", unlocked: false, active: false },
+      { name: "E-girl", emoji: "🎮", unlocked: false, active: false },
+      { name: "Demon", emoji: "😈", unlocked: false, active: false },
+    ];
 
-function updateUI() {
-  document.getElementById('taskCount').textContent = totalTasks;
-  const empty = document.getElementById('emptyState');
-  const active = document.getElementById('activeState');
-  if (activeChar && savedStories[activeChar]) {
-    empty.style.display = 'none';
-    active.style.display = 'block';
-    document.getElementById('dispAge').textContent = currentAge || '—';
-    document.getElementById('dispChar').textContent = activeChar;
-    const total = savedStories[activeChar].length;
-    const done = savedStories[activeChar].filter(s => s.opened).length;
-    document.getElementById('dispProgress').textContent = `Snap ${Math.min(done + 1, total)} of ${total}`;
-  } else {
-    empty.style.display = 'block';
-    active.style.display = 'none';
-  }
-}
+    const progression = [
+      { age: 24, sub: "Still pretending to be a husband", caption: "Wife: “Finish your sets like a good boy and maybe I’ll let you nurse later… if you earn it.”" },
+      { age: 18, sub: "Big brother energy fading fast", caption: "Wife: “Look at you sweating. Keep going and I’ll start treating you like the baby you’re becoming.”" },
+      { age: 12, sub: "Getting smaller", caption: "Wife: “Aww, is the little boy tired already? Diaper check after this set.”" },
+      { age: 7, sub: "Definitely not a husband anymore", caption: "Wife: “Good boy. Sit still while Mommy decides if you’ve earned the breast.”" },
+      { age: 4, sub: "Full regression in progress", caption: "Wife: “That’s it. Just a helpless little thing now. Suckle while I ignore you.”" },
+      { age: 2, sub: "Almost there…", caption: "Wife: “Almost small enough. Keep working and Mommy might put you back where you belong.”" },
+      { age: 1, sub: "Helpless", caption: "Wife: “There we go. No more big boy. Just a needy little mouth on my tit all day.”" },
+      { age: 0, sub: "Back where you started", caption: "Wife: “Climb in. You’re done being outside. Time to become nothing but a fetus again.”" },
+    ];
 
-function completeTask() {
-  totalTasks++;
-  localStorage.setItem('sm_tasks', totalTasks);
+    // --- Render ---
+    function render() {
+      const p = progression[Math.min(step, progression.length - 1)];
+      document.getElementById("ageDisplay").textContent = p.age;
+      document.getElementById("ageSub").textContent = p.sub;
+      document.getElementById("caption").innerHTML = `<strong>Wife:</strong> “${p.caption.replace(/^Wife: “|”$/g, "")}”`;
+      document.getElementById("points").textContent = points;
 
-  if (activeChar && savedStories[activeChar]) {
-    const next = savedStories[activeChar].find(s => !s.opened);
-    if (next) {
-      next.opened = true;
-      localStorage.setItem('sm_stories', JSON.stringify(savedStories));
-      showSnap(activeChar, next);
-      updateUI();
-      return;
-    }
-  }
-
-  // Start new random story
-  const ready = Object.keys(savedStories).filter(n => savedStories[n].some(s => !s.opened));
-  if (ready.length === 0) {
-    alert("No complete stories ready.\n\nGo to Build and upload at least one full story first.");
-    return;
-  }
-
-  activeChar = ready[Math.floor(Math.random() * ready.length)];
-  currentAge = ["Newborn","1 year old","2 years old","Toddler","3 years old","4 years old","Heavily regressed"][Math.floor(Math.random() * 7)];
-  localStorage.setItem('sm_active', activeChar);
-  localStorage.setItem('sm_age', currentAge);
-
-  const first = savedStories[activeChar].find(s => !s.opened);
-  first.opened = true;
-  localStorage.setItem('sm_stories', JSON.stringify(savedStories));
-  showSnap(activeChar, first);
-  updateUI();
-}
-
-function showSnap(name, snap) {
-  document.getElementById('viewerName').textContent = name;
-  document.getElementById('viewerAge').textContent = currentAge ? `You are a ${currentAge}` : '';
-  document.getElementById('viewerCaption').textContent = snap.caption;
-  document.getElementById('viewerAvatar').innerHTML = makeAvatar(name);
-
-  const box = document.getElementById('mediaBox');
-  box.innerHTML = '';
-
-  if (snap.dataUrl) {
-    if (snap.type === 'video') {
-      const v = document.createElement('video');
-      v.src = snap.dataUrl;
-      v.className = 'viewer-media';
-      v.autoplay = true;
-      v.playsInline = true;
-      box.appendChild(v);
-    } else {
-      const img = document.createElement('img');
-      img.src = snap.dataUrl;
-      img.className = 'viewer-media';
-      box.appendChild(img);
-    }
-  } else {
-    box.innerHTML = `<div style="color:#666;padding:20px;text-align:center;">No media uploaded for this step</div>`;
-  }
-
-  document.getElementById('viewer').classList.add('show');
-
-  const bar = document.getElementById('timerBar');
-  bar.style.transition = 'none';
-  bar.style.width = '100%';
-  setTimeout(() => {
-    bar.style.transition = 'width 8s linear';
-    bar.style.width = '0%';
-  }, 30);
-
-  clearTimeout(timer);
-  timer = setTimeout(closeViewer, 8000);
-}
-
-function closeViewer() {
-  clearTimeout(timer);
-  document.getElementById('viewer').classList.remove('show');
-  document.getElementById('mediaBox').innerHTML = '';
-}
-
-function openBuilder() {
-  selectedChar = null;
-  document.getElementById('charSearch').value = '';
-  document.getElementById('selectedBox').style.display = 'none';
-  document.getElementById('storySteps').style.display = 'none';
-  document.getElementById('uploadZone').style.display = 'none';
-  document.getElementById('autoList').style.display = 'none';
-  document.getElementById('builderModal').classList.add('show');
-}
-
-function filterChars() {
-  const q = document.getElementById('charSearch').value.toLowerCase().trim();
-  const list = document.getElementById('autoList');
-  if (!q) {
-    list.style.display = 'none';
-    return;
-  }
-  const matches = CHARACTERS.filter(c => c.toLowerCase().includes(q)).slice(0, 8);
-  list.innerHTML = matches.map(c => 
-    `<div class="autocomplete-item" onclick="pickChar('${c.replace(/'/g, "\\'")}')">${c}</div>`
-  ).join('');
-  list.style.display = matches.length ? 'block' : 'none';
-}
-
-function pickChar(name) {
-  selectedChar = name;
-  document.getElementById('charSearch').value = name;
-  document.getElementById('autoList').style.display = 'none';
-  document.getElementById('selectedBox').style.display = 'block';
-  document.getElementById('selectedBox').textContent = 'Selected: ' + name;
-
-  const steps = STORIES[name] || DEFAULT_STORY;
-  const container = document.getElementById('storySteps');
-  container.innerHTML = steps.map((s, i) => `
-    <div class="step-card">
-      <div class="step-num">STEP ${i + 1}</div>
-      <div class="step-guide">${s.guide}</div>
-    </div>
-  `).join('');
-  container.style.display = 'block';
-  document.getElementById('uploadZone').style.display = 'block';
-  document.getElementById('multiFiles').value = '';
-}
-
-function saveStory() {
-  const files = document.getElementById('multiFiles').files;
-  if (!files || files.length === 0) {
-    alert('Please select the photos/videos first.');
-    return;
-  }
-
-  const base = STORIES[selectedChar] || DEFAULT_STORY;
-  const saved = [];
-
-  // Convert files to dataURLs so they survive page reloads
-  let processed = 0;
-  for (let i = 0; i < base.length; i++) {
-    saved.push({
-      guide: base[i].guide,
-      caption: base[i].caption,
-      type: null,
-      dataUrl: null,
-      opened: false
-    });
-  }
-
-  function finish() {
-    savedStories[selectedChar] = saved;
-    localStorage.setItem('sm_stories', JSON.stringify(savedStories));
-    alert('Story saved for ' + selectedChar);
-    closeModal('builderModal');
-    updateUI();
-  }
-
-  if (files.length === 0) {
-    finish();
-    return;
-  }
-
-  for (let i = 0; i < Math.min(files.length, base.length); i++) {
-    const file = files[i];
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      saved[i].dataUrl = e.target.result;
-      saved[i].type = file.type.startsWith('video') ? 'video' : 'photo';
-      processed++;
-      if (processed === Math.min(files.length, base.length)) {
-        finish();
+      // dots
+      const dots = document.getElementById("dots");
+      dots.innerHTML = "";
+      for (let i = 0; i < progression.length; i++) {
+        const d = document.createElement("div");
+        d.className = "dot" + (i <= step ? " filled" : "");
+        dots.appendChild(d);
       }
-    };
-    reader.readAsDataURL(file);
-  }
-}
 
-function openRoster() {
-  document.getElementById('rosterList').innerHTML = CHARACTERS.map(c => {
-    const has = savedStories[c] ? ' ✓' : '';
-    return `<div style="padding:9px 0;border-bottom:1px solid #2C2C2E;">${c}<span style="color:var(--gray);">${has}</span></div>`;
-  }).join('');
-  document.getElementById('rosterModal').classList.add('show');
-}
+      // tray
+      const tray = document.getElementById("tray");
+      tray.innerHTML = "";
+      caregivers.forEach(c => {
+        const el = document.createElement("div");
+        el.className = "caregiver";
+        el.innerHTML = `
+          <div class="avatar ${c.active ? "active" : ""} ${c.unlocked ? "" : "locked"}">${c.emoji}</div>
+          <div class="name ${c.active ? "active" : ""}">${c.name}</div>
+        `;
+        tray.appendChild(el);
+      });
+    }
 
-function closeModal(id) {
-  document.getElementById(id).classList.remove('show');
-}
+    function logSet() {
+      points += 10;
+      if (step < progression.length - 1) {
+        step++;
+        currentAge = progression[step].age;
+      }
+      // simple unlock example
+      if (points >= 30) caregivers[2].unlocked = true;
+      if (points >= 50) caregivers[3].unlocked = true;
+      if (points >= 70) caregivers[4].unlocked = true;
 
-function doReset() {
-  if (confirm('Erase all stories and progress?')) {
-    localStorage.clear();
-    location.reload();
-  }
-}
+      render();
+    }
 
-function makeAvatar(name) {
-  const i = CHARACTERS.indexOf(name);
-  const skin = ['#F3D3BD','#E0B090','#D08B5B','#A05A2C','#76390B'][i % 5];
-  const col = ['#1F1610','#3D2314','#C48E48','#7D1E1E','#222'][i % 5];
-  return `<svg width="40" height="42" viewBox="0 0 48 52">
-    <circle cx="24" cy="8" r="6" fill="${col}"/>
-    <path d="M14,20 C13,10 35,10 34,20 C32,16 16,16 14,20 Z" fill="${col}"/>
-    <path d="M18,38 L30,38 L33,52 L15,52 Z" fill="${skin}"/>
-    <path d="M15,18 C15,10 33,10 33,18 C33,32 15,32 15,18 Z" fill="${skin}"/>
-    <ellipse cx="20" cy="20" rx="1.7" ry="2.1" fill="#222"/>
-    <ellipse cx="28" cy="20" rx="1.7" ry="2.1" fill="#222"/>
-  </svg>`;
-}
-
-// Initialize
-updateUI();
-</script>
+    // init
+    render();
+  </script>
 </body>
 </html>
