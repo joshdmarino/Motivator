@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Regression" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0b0b0e" />
   <title>Regression Matches</title>
+  <link rel="manifest" id="manifestLink" />
   <style>
     :root {
       --bg: #0b0b0e;
@@ -307,9 +313,35 @@
     }
     .nav-item.active { color: var(--accent); }
     .nav-item span { display: block; font-size: 17px; margin-bottom: 1px; }
+
+    .install-banner {
+      display: none;
+      background: #1a1a22;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .install-banner.show { display: block; }
+    .install-banner button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      margin-left: 8px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+
+  <div class="install-banner" id="installBanner">
+    Add to Home Screen for app-like use
+    <button onclick="hideInstallBanner()">Got it</button>
+  </div>
 
   <div class="top">
     <button class="top-btn" id="topLeftBtn" onclick="handleTopLeft()"></button>
@@ -351,6 +383,11 @@
     <div id="dashContent">
       <div class="empty-state">No matches yet.</div>
     </div>
+    <div style="padding: 16px 12px 0; display:flex; gap:8px;">
+      <button class="secondary-btn" style="margin:0;" onclick="exportData()">Export Backup</button>
+      <button class="secondary-btn" style="margin:0;" onclick="document.getElementById('importFile').click()">Import Backup</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)" />
+    </div>
   </div>
 
   <div id="addView" class="view">
@@ -360,7 +397,7 @@
     </div>
     <div class="field">
       <label>Age</label>
-      <input type="number" id="addAge" min="1" max="99" />
+      <input type="number" id="addAge" min="18" max="99" />
     </div>
 
     <div class="field">
@@ -420,42 +457,76 @@
   </div>
 
   <script>
-    const HAIR_OPTS = [
-      "Black", "Brown", "Blonde", "Red / Auburn", "Gray / Silver",
-      "Dyed / Unnatural", "Long", "Medium", "Short",
-      "Straight", "Wavy", "Curly"
-    ];
-    const BODY_OPTS = [
-      "Slim", "Athletic / Toned", "Average", "Soft",
-      "Curvy", "Thick", "Plus-size / Chubby", "Petite"
-    ];
-    const PIERCING_OPTS = [
-      "None",
-      "Small nose stud",
-      "Septum",
-      "Multiple ear",
-      "Industrial / cartilage",
-      "Eyebrow",
-      "Lip / labret",
-      "Tongue",
-      "Nipple",
-      "Navel",
-      "Other facial",
-      "Heavy / stretched"
-    ];
+    const HAIR_OPTS = ["Black","Brown","Blonde","Red / Auburn","Gray / Silver","Dyed / Unnatural","Long","Medium","Short","Straight","Wavy","Curly"];
+    const BODY_OPTS = ["Slim","Athletic / Toned","Average","Soft","Curvy","Thick","Plus-size / Chubby","Petite"];
+    const PIERCING_OPTS = ["None","Small nose stud","Septum","Multiple ear","Industrial / cartilage","Eyebrow","Lip / labret","Tongue","Nipple","Navel","Other facial","Heavy / stretched"];
 
     let characters = [];
     let currentIndex = 0;
     let activeId = null;
     let tempMedia = [];
     let orderedPool = [];
+    let db = null;
 
-    function load() {
-      const raw = localStorage.getItem("reg_tinder_v4");
-      characters = raw ? JSON.parse(raw) : [];
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("RegressionMatchesDB", 1);
+        request.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          if (!database.objectStoreNames.contains("characters")) {
+            database.createObjectStore("characters", { keyPath: "id" });
+          }
+        };
+        request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+        request.onerror = () => reject(request.error);
+      });
     }
-    function save() {
-      localStorage.setItem("reg_tinder_v4", JSON.stringify(characters));
+
+    function saveCharacters() {
+      return new Promise((resolve, reject) => {
+        if (!db) return reject("DB not ready");
+        const tx = db.transaction("characters", "readwrite");
+        const store = tx.objectStore("characters");
+        store.clear();
+        characters.forEach(c => store.put(c));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    function loadCharacters() {
+      return new Promise((resolve, reject) => {
+        if (!db) return reject("DB not ready");
+        const tx = db.transaction("characters", "readonly");
+        const store = tx.objectStore("characters");
+        const req = store.getAll();
+        req.onsuccess = () => { characters = req.result || []; resolve(characters); };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function setupManifest() {
+      const manifest = {
+        name: "Regression Matches",
+        short_name: "Regression",
+        start_url: location.href,
+        display: "standalone",
+        background_color: "#0b0b0e",
+        theme_color: "#0b0b0e",
+        orientation: "portrait",
+        icons: [{
+          src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23e11d48' width='100' height='100' rx='20'/%3E%3Ctext y='68' x='50' text-anchor='middle' font-size='50' fill='white'%3E♥%3C/text%3E%3C/svg%3E",
+          sizes: "any",
+          type: "image/svg+xml"
+        }]
+      };
+      const blob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
+      document.getElementById("manifestLink").href = URL.createObjectURL(blob);
+    }
+
+    function hideInstallBanner() {
+      document.getElementById("installBanner").classList.remove("show");
+      localStorage.setItem("hideInstallBanner", "1");
     }
 
     function randomTargetAge() {
@@ -493,7 +564,6 @@
 
     function computeDifficulty(c) {
       let d = 0.38;
-
       const hair = (c.hair || []).map(h => h.toLowerCase());
       const body = (c.body || []).map(b => b.toLowerCase());
       const piercings = (c.piercings || []).map(p => p.toLowerCase());
@@ -647,7 +717,7 @@
 
       if (!c.desireLine) {
         c.desireLine = generateDesireLine();
-        save();
+        saveCharacters();
       }
 
       stack.innerHTML = `
@@ -678,8 +748,7 @@
         }
         c.matched = true;
         c.unlocked = 1;
-        save();
-        showScene(c.id);
+        saveCharacters().then(() => showScene(c.id));
       } else {
         currentIndex = (currentIndex + 1) % orderedPool.length;
         renderDiscover();
@@ -735,8 +804,7 @@
       const c = characters.find(x => x.id === activeId);
       if (!c || (c.unlocked || 1) >= c.media.length) return;
       c.unlocked = (c.unlocked || 1) + 1;
-      save();
-      renderScene();
+      saveCharacters().then(() => renderScene());
     }
 
     function renderDash() {
@@ -766,6 +834,39 @@
       });
     }
 
+    function exportData() {
+      const data = JSON.stringify(characters);
+      const blob = new Blob([data], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "regression-backup-" + new Date().toISOString().slice(0,10) + ".json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importData(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const imported = JSON.parse(ev.target.result);
+          if (!Array.isArray(imported)) throw new Error("Invalid");
+          if (!confirm(`Import ${imported.length} characters? This replaces current data.`)) return;
+          characters = imported;
+          saveCharacters().then(() => {
+            currentIndex = 0;
+            showDash();
+            alert("Import complete");
+          });
+        } catch (err) {
+          alert("Could not import file");
+        }
+      };
+      reader.readAsText(file);
+    }
+
     function addMediaField() {
       tempMedia.push({ type: "image", data: null, caption: "" });
       renderTempMedia();
@@ -779,9 +880,7 @@
         div.className = "media-item";
         div.innerHTML = `
           <strong>Media ${i + 1}</strong>
-          <input type="text" 
-            value="${m.caption}" 
-            onchange="tempMedia[${i}].caption = this.value"
+          <input type="text" value="${m.caption}" onchange="tempMedia[${i}].caption = this.value"
             style="width:100%;margin:6px 0;padding:8px;border-radius:6px;border:1px solid var(--border);background:#1a1a1f;color:var(--text);font-size:13px;" />
           <input type="file" accept="image/*,video/*" onchange="handleTempMedia(event, ${i})" />
         `;
@@ -811,34 +910,25 @@
       const profileInput = document.getElementById("addProfile");
 
       if (!name) { alert("Name required"); return; }
+      if (age < 18) { alert("Age must be 18+"); return; }
 
       const finish = (profileData) => {
-        const media = tempMedia
-          .filter(m => m.data)
-          .map(m => ({ type: m.type, data: m.data, caption: m.caption || "" }));
-
-        if (media.length === 0) {
-          media.push({ type: "image", data: profileData || null, caption: "" });
-        }
+        const media = tempMedia.filter(m => m.data).map(m => ({ type: m.type, data: m.data, caption: m.caption || "" }));
+        if (media.length === 0) media.push({ type: "image", data: profileData || null, caption: "" });
 
         characters.push({
           id: "c" + Date.now(),
-          name,
-          age,
-          hair,
-          body,
-          breasts,
-          tattoos,
-          piercings,
+          name, age, hair, body, breasts, tattoos, piercings,
           desireLine: generateDesireLine(),
           profile: profileData,
           media,
           matched: false,
           unlocked: 0
         });
-        save();
-        currentIndex = 0;
-        showDiscover();
+        saveCharacters().then(() => {
+          currentIndex = 0;
+          showDiscover();
+        });
       };
 
       if (profileInput.files[0]) {
@@ -851,19 +941,26 @@
     }
 
     function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+      return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
 
     buildCheckGrid("hairChecks", HAIR_OPTS, "hair");
     buildCheckGrid("bodyChecks", BODY_OPTS, "body");
     buildCheckGrid("piercingChecks", PIERCING_OPTS, "pierce");
+    setupManifest();
 
-    load();
-    showDiscover();
+    openDB()
+      .then(() => loadCharacters())
+      .then(() => {
+        showDiscover();
+        if (!localStorage.getItem("hideInstallBanner") && !window.matchMedia("(display-mode: standalone)").matches) {
+          document.getElementById("installBanner").classList.add("show");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Storage error. Try refreshing.");
+      });
   </script>
 </body>
 </html>
