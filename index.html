@@ -231,15 +231,17 @@
     .dash-card .sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
 
     #addView { padding: 12px 14px 40px; }
-    .field { margin-bottom: 13px; }
+    .field { margin-bottom: 14px; }
     .field label {
       display: block;
       font-size: 12px;
       color: var(--muted);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       font-weight: 500;
     }
-    .field input, .field textarea, .field select {
+    .field input[type="text"],
+    .field input[type="number"],
+    .field select {
       width: 100%;
       background: var(--card);
       border: 1px solid var(--border);
@@ -248,7 +250,25 @@
       color: var(--text);
       font-size: 15px;
     }
-    .field textarea { min-height: 60px; resize: vertical; }
+    .check-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13.5px;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+    .check-item input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
     .media-list { margin: 6px 0 10px; }
     .media-item {
       background: var(--card);
@@ -340,16 +360,43 @@
     </div>
     <div class="field">
       <label>Age</label>
-      <input type="number" id="addAge" min="18" max="99" />
+      <input type="number" id="addAge" min="1" max="99" />
     </div>
+
     <div class="field">
-      <label>Hair</label>
-      <input type="text" id="addHair" />
+      <label>Hair (select all that apply)</label>
+      <div class="check-grid" id="hairChecks"></div>
     </div>
+
     <div class="field">
-      <label>Body type</label>
-      <input type="text" id="addBody" />
+      <label>Body type (select all that apply)</label>
+      <div class="check-grid" id="bodyChecks"></div>
     </div>
+
+    <div class="field">
+      <label>Breast size</label>
+      <select id="addBreasts">
+        <option value="">—</option>
+        <option value="small">Small</option>
+        <option value="medium">Medium</option>
+        <option value="large">Large</option>
+        <option value="very large">Very large</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Tattoos</label>
+      <select id="addTattoos">
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Piercings (select all that apply)</label>
+      <div class="check-grid" id="piercingChecks"></div>
+    </div>
+
     <div class="field">
       <label>Profile Photo</label>
       <input type="file" id="addProfile" accept="image/*" />
@@ -373,6 +420,30 @@
   </div>
 
   <script>
+    const HAIR_OPTS = [
+      "Black", "Brown", "Blonde", "Red / Auburn", "Gray / Silver",
+      "Dyed / Unnatural", "Long", "Medium", "Short",
+      "Straight", "Wavy", "Curly"
+    ];
+    const BODY_OPTS = [
+      "Slim", "Athletic / Toned", "Average", "Soft",
+      "Curvy", "Thick", "Plus-size / Chubby", "Petite"
+    ];
+    const PIERCING_OPTS = [
+      "None",
+      "Small nose stud",
+      "Septum",
+      "Multiple ear",
+      "Industrial / cartilage",
+      "Eyebrow",
+      "Lip / labret",
+      "Tongue",
+      "Nipple",
+      "Navel",
+      "Other facial",
+      "Heavy / stretched"
+    ];
+
     let characters = [];
     let currentIndex = 0;
     let activeId = null;
@@ -380,11 +451,11 @@
     let orderedPool = [];
 
     function load() {
-      const raw = localStorage.getItem("reg_tinder_v3");
+      const raw = localStorage.getItem("reg_tinder_v4");
       characters = raw ? JSON.parse(raw) : [];
     }
     function save() {
-      localStorage.setItem("reg_tinder_v3", JSON.stringify(characters));
+      localStorage.setItem("reg_tinder_v4", JSON.stringify(characters));
     }
 
     function randomTargetAge() {
@@ -399,14 +470,12 @@
       if (r < 0.97) return 10 + Math.floor(Math.random() * 5);
       return 15 + Math.floor(Math.random() * 9);
     }
-
     function ageLabel(n) {
       if (n === 0) return "newborn";
       if (n === 1) return "1-year-old";
       if (n <= 5) return n + "-year-old";
       return n + "";
     }
-
     function generateDesireLine() {
       const age = randomTargetAge();
       const label = ageLabel(age);
@@ -423,19 +492,68 @@
     }
 
     function computeDifficulty(c) {
-      let d = 0.35;
-      const hair = (c.hair || "").toLowerCase();
-      const body = (c.body || "").toLowerCase();
+      let d = 0.38;
 
-      if (hair.includes("blonde") || hair.includes("light")) d -= 0.08;
-      if (hair.includes("black") || hair.includes("dark")) d += 0.03;
-      if (body.includes("slim") || body.includes("fit") || body.includes("toned") || body.includes("athletic")) d -= 0.12;
-      if (body.includes("curvy") || body.includes("thick") || body.includes("soft") || body.includes("chubby") || body.includes("bbw") || body.includes("fat")) d += 0.10;
-      if (body.includes("average")) d += 0.04;
-      if (c.age >= 40) d += 0.06;
-      if (c.age <= 25) d -= 0.07;
+      const hair = (c.hair || []).map(h => h.toLowerCase());
+      const body = (c.body || []).map(b => b.toLowerCase());
+      const piercings = (c.piercings || []).map(p => p.toLowerCase());
+      const breasts = (c.breasts || "").toLowerCase();
+      const tattoos = (c.tattoos || "no").toLowerCase();
 
-      return Math.max(0.08, Math.min(0.78, d));
+      if (hair.some(h => h.includes("blonde"))) d -= 0.06;
+      if (hair.some(h => h.includes("black") || h.includes("dark"))) d += 0.02;
+      if (hair.some(h => h.includes("dyed") || h.includes("unnatural"))) d -= 0.04;
+
+      if (body.some(b => b.includes("slim") || b.includes("athletic") || b.includes("toned"))) d -= 0.11;
+      if (body.some(b => b.includes("curvy") || b.includes("thick"))) d += 0.05;
+      if (body.some(b => b.includes("soft") || b.includes("plus") || b.includes("chubby"))) d += 0.09;
+      if (body.some(b => b.includes("average"))) d += 0.03;
+      if (body.some(b => b.includes("petite"))) d -= 0.03;
+
+      if (breasts === "very large") d -= 0.05;
+      if (breasts === "large") d -= 0.02;
+      if (breasts === "small") d += 0.04;
+
+      if (tattoos === "yes") d -= 0.07;
+
+      if (piercings.includes("small nose stud") && piercings.length === 1) {
+        d += 0.03;
+      } else {
+        if (piercings.includes("septum")) d -= 0.06;
+        if (piercings.includes("industrial") || piercings.includes("cartilage")) d -= 0.05;
+        if (piercings.includes("eyebrow")) d -= 0.05;
+        if (piercings.includes("lip") || piercings.includes("labret")) d -= 0.07;
+        if (piercings.includes("tongue")) d -= 0.08;
+        if (piercings.includes("nipple")) d -= 0.04;
+        if (piercings.includes("navel")) d -= 0.03;
+        if (piercings.includes("other facial")) d -= 0.06;
+        if (piercings.includes("heavy") || piercings.includes("stretched")) d -= 0.12;
+        if (piercings.includes("multiple ear")) d -= 0.03;
+        const nonNone = piercings.filter(p => p !== "none" && p !== "small nose stud");
+        if (nonNone.length >= 3) d -= 0.08;
+      }
+
+      if (c.age >= 42) d += 0.05;
+      if (c.age <= 24) d -= 0.06;
+
+      return Math.max(0.07, Math.min(0.82, d));
+    }
+
+    function buildCheckGrid(containerId, options, namePrefix) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = "";
+      options.forEach(opt => {
+        const id = namePrefix + "_" + opt.replace(/[^a-z0-9]/gi, "_");
+        const label = document.createElement("label");
+        label.className = "check-item";
+        label.innerHTML = `<input type="checkbox" id="${id}" value="${opt}"> ${opt}`;
+        el.appendChild(label);
+      });
+    }
+
+    function getChecked(containerId) {
+      const boxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
+      return Array.from(boxes).map(b => b.value);
     }
 
     function hideAll() {
@@ -472,9 +590,10 @@
       document.getElementById("topRightBtn").textContent = "";
       document.getElementById("addName").value = "";
       document.getElementById("addAge").value = "";
-      document.getElementById("addHair").value = "";
-      document.getElementById("addBody").value = "";
+      document.getElementById("addBreasts").value = "";
+      document.getElementById("addTattoos").value = "no";
       document.getElementById("addProfile").value = "";
+      document.querySelectorAll("#hairChecks input, #bodyChecks input, #piercingChecks input").forEach(c => c.checked = false);
       tempMedia = [];
       renderTempMedia();
     }
@@ -499,7 +618,7 @@
       orderedPool = [];
       unmatched.forEach(c => {
         const chance = computeDifficulty(c);
-        const weight = Math.max(1, Math.round((1 - chance) * 14));
+        const weight = Math.max(1, Math.round((1 - chance) * 16));
         for (let i = 0; i < weight; i++) orderedPool.push(c);
       });
       for (let i = orderedPool.length - 1; i > 0; i--) {
@@ -684,12 +803,14 @@
     function saveCharacter() {
       const name = document.getElementById("addName").value.trim();
       const age = parseInt(document.getElementById("addAge").value) || 0;
-      const hair = document.getElementById("addHair").value.trim();
-      const body = document.getElementById("addBody").value.trim();
+      const hair = getChecked("hairChecks");
+      const body = getChecked("bodyChecks");
+      const breasts = document.getElementById("addBreasts").value;
+      const tattoos = document.getElementById("addTattoos").value;
+      const piercings = getChecked("piercingChecks");
       const profileInput = document.getElementById("addProfile");
 
       if (!name) { alert("Name required"); return; }
-      if (age < 18) { alert("Age must be 18+"); return; }
 
       const finish = (profileData) => {
         const media = tempMedia
@@ -706,6 +827,9 @@
           age,
           hair,
           body,
+          breasts,
+          tattoos,
+          piercings,
           desireLine: generateDesireLine(),
           profile: profileData,
           media,
@@ -733,6 +857,10 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
     }
+
+    buildCheckGrid("hairChecks", HAIR_OPTS, "hair");
+    buildCheckGrid("bodyChecks", BODY_OPTS, "body");
+    buildCheckGrid("piercingChecks", PIERCING_OPTS, "pierce");
 
     load();
     showDiscover();
