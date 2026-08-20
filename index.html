@@ -26,18 +26,18 @@
       overflow-x: hidden;
     }
     .top {
-      height: 52px;
+      height: 48px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
+      padding: 0 14px;
       border-bottom: 1px solid var(--border);
       background: var(--bg);
       position: sticky;
       top: 0;
       z-index: 20;
     }
-    .top h1 { font-size: 17px; font-weight: 600; }
+    .top h1 { font-size: 16px; font-weight: 600; }
     .top-btn {
       background: none;
       border: none;
@@ -45,50 +45,71 @@
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
-      padding: 6px 4px;
-      min-width: 50px;
+      padding: 6px 2px;
+      min-width: 48px;
     }
     .view { display: none; flex: 1; flex-direction: column; overflow-y: auto; }
     .view.active { display: flex; }
 
-    /* Discover */
-    #discoverView { padding: 12px 16px 20px; justify-content: space-between; }
+    #discoverView {
+      padding: 8px 10px 12px;
+      justify-content: space-between;
+    }
     .card-stack {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 420px;
+      min-height: 0;
     }
     .tinder-card {
       width: 100%;
-      max-width: 360px;
+      height: 100%;
+      max-height: calc(100dvh - 180px);
       background: var(--card);
-      border-radius: 16px;
+      border-radius: 14px;
       overflow: hidden;
       border: 1px solid var(--border);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+      box-shadow: 0 10px 36px rgba(0,0,0,0.5);
+      position: relative;
+      display: flex;
+      flex-direction: column;
     }
     .tinder-photo {
-      height: 400px;
-      background: #111;
+      flex: 1;
+      background: #0f0f12;
       position: relative;
       overflow: hidden;
+      min-height: 400px;
     }
     .tinder-photo img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      display: block;
     }
     .tinder-info {
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      padding: 50px 16px 18px;
-      background: linear-gradient(to top, rgba(0,0,0,0.92), rgba(0,0,0,0.4) 70%, transparent);
+      padding: 42px 14px 16px;
+      background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
     }
-    .tinder-name { font-size: 26px; font-weight: 700; }
-    .tinder-name span { font-weight: 500; font-size: 22px; opacity: 0.9; }
-    .tinder-bio { margin-top: 6px; font-size: 14.5px; color: #e4e4e7; line-height: 1.35; }
+    .tinder-name {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .tinder-name span {
+      font-weight: 500;
+      font-size: 20px;
+      opacity: 0.9;
+    }
+    .tinder-bio {
+      margin-top: 6px;
+      font-size: 14.5px;
+      color: #e4e4e7;
+      line-height: 1.35;
+    }
     .empty-state {
       text-align: center;
       padding: 40px 20px;
@@ -99,31 +120,33 @@
     .swipe-actions {
       display: flex;
       justify-content: center;
-      gap: 28px;
-      padding: 18px 0 8px;
+      gap: 32px;
+      padding: 14px 0 6px;
     }
     .swipe-btn {
-      width: 64px; height: 64px;
+      width: 62px;
+      height: 62px;
       border-radius: 50%;
       border: 2px solid var(--border);
       background: var(--card);
-      font-size: 26px;
+      font-size: 24px;
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .swipe-btn.no { color: #f87171; border-color: #7f1d1d; }
     .swipe-btn.yes { color: #4ade80; border-color: #166534; }
 
-    /* Scene */
     .scene-header {
-      padding: 10px 16px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
       gap: 12px;
       border-bottom: 1px solid var(--border);
     }
     .scene-header img {
-      width: 44px; height: 44px;
+      width: 42px; height: 42px;
       border-radius: 50%;
       object-fit: cover;
       background: #222;
@@ -132,100 +155,101 @@
     .scene-header .sub { font-size: 12px; color: var(--muted); }
     .scene-media {
       width: 100%;
-      background: #0f0f12;
-      min-height: 320px;
+      background: #0a0a0c;
+      flex: 1;
+      min-height: 360px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .scene-media img, .scene-media video {
       width: 100%;
-      max-height: 480px;
+      height: 100%;
+      max-height: 70dvh;
       object-fit: contain;
       background: #000;
     }
     .scene-caption {
-      padding: 14px 16px;
-      font-size: 14.5px;
+      padding: 12px 14px;
+      font-size: 14px;
       line-height: 1.45;
       border-bottom: 1px solid var(--border);
     }
-    .scene-actions { padding: 16px; }
+    .scene-actions { padding: 14px; }
     .primary-btn {
       width: 100%;
       background: var(--accent);
       color: white;
       border: none;
       border-radius: 12px;
-      padding: 15px;
-      font-size: 15.5px;
+      padding: 14px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
     }
+    .primary-btn:disabled { opacity: 0.45; cursor: default; }
     .secondary-btn {
       width: 100%;
-      margin-top: 10px;
+      margin-top: 8px;
       background: transparent;
       border: 1px solid var(--border);
       color: var(--text);
       border-radius: 12px;
-      padding: 13px;
+      padding: 12px;
       font-size: 14px;
       cursor: pointer;
     }
     .progress {
       text-align: center;
-      margin-top: 10px;
-      font-size: 12.5px;
+      margin-top: 8px;
+      font-size: 12px;
       color: var(--muted);
     }
 
-    /* Dashboard */
-    #dashView { padding: 12px 14px 30px; }
+    #dashView { padding: 12px 12px 28px; }
     .dash-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
     }
     .dash-card {
       background: var(--card);
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
       border: 1px solid var(--border);
       cursor: pointer;
     }
     .dash-card img {
       width: 100%;
-      height: 160px;
+      height: 170px;
       object-fit: cover;
       background: #111;
       display: block;
     }
-    .dash-card .info { padding: 10px; }
-    .dash-card .name { font-weight: 600; font-size: 14px; }
-    .dash-card .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .dash-card .info { padding: 9px 10px; }
+    .dash-card .name { font-weight: 600; font-size: 13.5px; }
+    .dash-card .sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
 
-    /* Add form */
-    #addView { padding: 12px 16px 40px; }
-    .field { margin-bottom: 14px; }
+    #addView { padding: 12px 14px 40px; }
+    .field { margin-bottom: 13px; }
     .field label {
       display: block;
       font-size: 12px;
       color: var(--muted);
-      margin-bottom: 5px;
+      margin-bottom: 4px;
       font-weight: 500;
     }
-    .field input, .field textarea {
+    .field input, .field textarea, .field select {
       width: 100%;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 12px;
+      padding: 11px 12px;
       color: var(--text);
       font-size: 15px;
     }
-    .field textarea { min-height: 72px; resize: vertical; }
-    .media-list { margin: 8px 0 12px; }
+    .field textarea { min-height: 60px; resize: vertical; }
+    .media-list { margin: 6px 0 10px; }
     .media-item {
       background: var(--card);
       border: 1px solid var(--border);
@@ -236,7 +260,7 @@
     }
     .small-btn {
       display: inline-block;
-      padding: 8px 14px;
+      padding: 8px 12px;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: #1a1a1f;
@@ -245,17 +269,16 @@
       cursor: pointer;
     }
 
-    /* Bottom nav */
     .bottom-nav {
       display: flex;
       border-top: 1px solid var(--border);
       background: var(--bg);
-      padding: 6px 0 10px;
+      padding: 5px 0 8px;
     }
     .nav-item {
       flex: 1;
       text-align: center;
-      padding: 8px 4px;
+      padding: 7px 4px;
       font-size: 11px;
       color: var(--muted);
       cursor: pointer;
@@ -263,7 +286,7 @@
       border: none;
     }
     .nav-item.active { color: var(--accent); }
-    .nav-item span { display: block; font-size: 18px; margin-bottom: 2px; }
+    .nav-item span { display: block; font-size: 17px; margin-bottom: 1px; }
   </style>
 </head>
 <body>
@@ -274,13 +297,11 @@
     <button class="top-btn" id="topRightBtn" onclick="showAdd()">Add</button>
   </div>
 
-  <!-- DISCOVER -->
   <div id="discoverView" class="view active">
     <div class="card-stack" id="cardStack">
       <div class="empty-state">
         No characters yet.<br><br>
-        Tap <strong>Add</strong> to create your first woman.<br>
-        Then come back and swipe.
+        Tap <strong>Add</strong> to create one.
       </div>
     </div>
     <div class="swipe-actions" id="swipeActions" style="display:none;">
@@ -289,7 +310,6 @@
     </div>
   </div>
 
-  <!-- SCENE -->
   <div id="sceneView" class="view">
     <div class="scene-header">
       <img id="sceneAvatar" src="" alt="">
@@ -307,37 +327,39 @@
     </div>
   </div>
 
-  <!-- DASHBOARD -->
   <div id="dashView" class="view">
     <div id="dashContent">
-      <div class="empty-state">No matches yet.<br>Swipe right on someone to start.</div>
+      <div class="empty-state">No matches yet.</div>
     </div>
   </div>
 
-  <!-- ADD -->
   <div id="addView" class="view">
     <div class="field">
       <label>Name</label>
-      <input type="text" id="addName" placeholder="e.g. Nancy" />
+      <input type="text" id="addName" />
     </div>
     <div class="field">
-      <label>Her Age (shown on card)</label>
-      <input type="number" id="addAge" placeholder="35" min="18" max="99" />
+      <label>Age</label>
+      <input type="number" id="addAge" min="18" max="99" />
     </div>
     <div class="field">
-      <label>Desire / Bio line</label>
-      <textarea id="addBio" placeholder="Looking for a newborn to keep latched all day"></textarea>
+      <label>Hair</label>
+      <input type="text" id="addHair" />
     </div>
     <div class="field">
-      <label>Profile Photo (big card image)</label>
+      <label>Body type</label>
+      <input type="text" id="addBody" />
+    </div>
+    <div class="field">
+      <label>Profile Photo</label>
       <input type="file" id="addProfile" accept="image/*" />
     </div>
 
-    <div style="font-size:13px; color:var(--muted); margin:16px 0 6px;">Extra media (unlocked with workouts)</div>
+    <div style="font-size:12.5px; color:var(--muted); margin:14px 0 6px;">Extra media (unlocked later)</div>
     <div class="media-list" id="addMediaList"></div>
     <button class="small-btn" onclick="addMediaField()">+ Add Photo or Video</button>
 
-    <button class="primary-btn" style="margin-top:24px;" onclick="saveCharacter()">Save Character</button>
+    <button class="primary-btn" style="margin-top:22px;" onclick="saveCharacter()">Save</button>
     <button class="secondary-btn" onclick="showDiscover()">Cancel</button>
   </div>
 
@@ -355,13 +377,65 @@
     let currentIndex = 0;
     let activeId = null;
     let tempMedia = [];
+    let orderedPool = [];
 
     function load() {
-      const raw = localStorage.getItem("reg_tinder_v1");
+      const raw = localStorage.getItem("reg_tinder_v3");
       characters = raw ? JSON.parse(raw) : [];
     }
     function save() {
-      localStorage.setItem("reg_tinder_v1", JSON.stringify(characters));
+      localStorage.setItem("reg_tinder_v3", JSON.stringify(characters));
+    }
+
+    function randomTargetAge() {
+      const r = Math.random();
+      if (r < 0.28) return 0;
+      if (r < 0.48) return 1;
+      if (r < 0.63) return 2;
+      if (r < 0.75) return 3;
+      if (r < 0.84) return 4;
+      if (r < 0.90) return 5;
+      if (r < 0.94) return 6 + Math.floor(Math.random() * 4);
+      if (r < 0.97) return 10 + Math.floor(Math.random() * 5);
+      return 15 + Math.floor(Math.random() * 9);
+    }
+
+    function ageLabel(n) {
+      if (n === 0) return "newborn";
+      if (n === 1) return "1-year-old";
+      if (n <= 5) return n + "-year-old";
+      return n + "";
+    }
+
+    function generateDesireLine() {
+      const age = randomTargetAge();
+      const label = ageLabel(age);
+      const templates = [
+        `Looking for a ${label}`,
+        `Wants a ${label}`,
+        `Needs a quiet ${label}`,
+        `Searching for her ${label}`,
+        `Ready for a ${label}`,
+        `Hoping for a soft ${label}`,
+        `After a helpless ${label}`
+      ];
+      return templates[Math.floor(Math.random() * templates.length)];
+    }
+
+    function computeDifficulty(c) {
+      let d = 0.35;
+      const hair = (c.hair || "").toLowerCase();
+      const body = (c.body || "").toLowerCase();
+
+      if (hair.includes("blonde") || hair.includes("light")) d -= 0.08;
+      if (hair.includes("black") || hair.includes("dark")) d += 0.03;
+      if (body.includes("slim") || body.includes("fit") || body.includes("toned") || body.includes("athletic")) d -= 0.12;
+      if (body.includes("curvy") || body.includes("thick") || body.includes("soft") || body.includes("chubby") || body.includes("bbw") || body.includes("fat")) d += 0.10;
+      if (body.includes("average")) d += 0.04;
+      if (c.age >= 40) d += 0.06;
+      if (c.age <= 25) d -= 0.07;
+
+      return Math.max(0.08, Math.min(0.78, d));
     }
 
     function hideAll() {
@@ -376,6 +450,7 @@
       document.getElementById("topTitle").textContent = "Discover";
       document.getElementById("topLeftBtn").textContent = "";
       document.getElementById("topRightBtn").textContent = "Add";
+      buildWeightedPool();
       renderDiscover();
     }
 
@@ -392,12 +467,13 @@
     function showAdd() {
       hideAll();
       document.getElementById("addView").classList.add("active");
-      document.getElementById("topTitle").textContent = "New Character";
+      document.getElementById("topTitle").textContent = "New";
       document.getElementById("topLeftBtn").textContent = "Cancel";
       document.getElementById("topRightBtn").textContent = "";
       document.getElementById("addName").value = "";
       document.getElementById("addAge").value = "";
-      document.getElementById("addBio").value = "";
+      document.getElementById("addHair").value = "";
+      document.getElementById("addBody").value = "";
       document.getElementById("addProfile").value = "";
       tempMedia = [];
       renderTempMedia();
@@ -415,30 +491,45 @@
 
     function handleTopLeft() {
       const title = document.getElementById("topTitle").textContent;
-      if (title === "New Character" || title === "Scene") showDiscover();
+      if (title === "New" || title === "Scene") showDiscover();
     }
 
-    function getUnmatched() {
-      return characters.filter(c => !c.matched);
+    function buildWeightedPool() {
+      const unmatched = characters.filter(c => !c.matched);
+      orderedPool = [];
+      unmatched.forEach(c => {
+        const chance = computeDifficulty(c);
+        const weight = Math.max(1, Math.round((1 - chance) * 14));
+        for (let i = 0; i < weight; i++) orderedPool.push(c);
+      });
+      for (let i = orderedPool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [orderedPool[i], orderedPool[j]] = [orderedPool[j], orderedPool[i]];
+      }
+      currentIndex = 0;
     }
 
     function renderDiscover() {
       const stack = document.getElementById("cardStack");
       const actions = document.getElementById("swipeActions");
-      const unmatched = getUnmatched();
 
-      if (unmatched.length === 0) {
+      if (orderedPool.length === 0) {
         stack.innerHTML = `<div class="empty-state">
           ${characters.length === 0 
-            ? "No characters yet.<br><br>Tap <strong>Add</strong> to create your first woman."
-            : "No more new women right now.<br><br>Add more or check your Matches."}
+            ? "No characters yet.<br><br>Tap <strong>Add</strong> to create one."
+            : "No more new women right now."}
         </div>`;
         actions.style.display = "none";
         return;
       }
 
-      if (currentIndex >= unmatched.length) currentIndex = 0;
-      const c = unmatched[currentIndex];
+      if (currentIndex >= orderedPool.length) currentIndex = 0;
+      const c = orderedPool[currentIndex];
+
+      if (!c.desireLine) {
+        c.desireLine = generateDesireLine();
+        save();
+      }
 
       stack.innerHTML = `
         <div class="tinder-card">
@@ -447,8 +538,8 @@
               ? `<img src="${c.profile}" alt="">` 
               : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);">No photo</div>`}
             <div class="tinder-info">
-              <div class="tinder-name">${c.name} <span>${c.age}</span></div>
-              <div class="tinder-bio">${c.bio || ""}</div>
+              <div class="tinder-name">${escapeHtml(c.name)} <span>${c.age}</span></div>
+              <div class="tinder-bio">${escapeHtml(c.desireLine)}</div>
             </div>
           </div>
         </div>`;
@@ -456,17 +547,22 @@
     }
 
     function swipe(right) {
-      const unmatched = getUnmatched();
-      if (unmatched.length === 0) return;
-      const c = unmatched[currentIndex];
+      if (orderedPool.length === 0) return;
+      const c = orderedPool[currentIndex];
 
       if (right) {
+        const chance = computeDifficulty(c);
+        if (Math.random() > chance) {
+          currentIndex = (currentIndex + 1) % orderedPool.length;
+          renderDiscover();
+          return;
+        }
         c.matched = true;
         c.unlocked = 1;
         save();
         showScene(c.id);
       } else {
-        currentIndex = (currentIndex + 1) % unmatched.length;
+        currentIndex = (currentIndex + 1) % orderedPool.length;
         renderDiscover();
       }
     }
@@ -477,7 +573,7 @@
 
       document.getElementById("sceneAvatar").src = c.profile || "";
       document.getElementById("sceneName").textContent = `${c.name}, ${c.age}`;
-      document.getElementById("sceneSub").textContent = c.bio || "";
+      document.getElementById("sceneSub").textContent = c.desireLine || "";
 
       const mediaEl = document.getElementById("sceneMedia");
       const captionEl = document.getElementById("sceneCaption");
@@ -488,7 +584,7 @@
       const item = c.media[idx];
 
       if (!item || !item.data) {
-        mediaEl.innerHTML = `<div style="color:var(--muted);padding:40px;text-align:center;">No media yet.</div>`;
+        mediaEl.innerHTML = `<div style="color:var(--muted);padding:40px;text-align:center;">No media.</div>`;
         captionEl.textContent = "";
         unlockBtn.style.display = "none";
         progressEl.textContent = "";
@@ -496,7 +592,7 @@
       }
 
       if (item.type === "video") {
-        mediaEl.innerHTML = `<video src="${item.data}" controls playsinline style="width:100%;max-height:480px;"></video>`;
+        mediaEl.innerHTML = `<video src="${item.data}" controls playsinline></video>`;
       } else {
         mediaEl.innerHTML = `<img src="${item.data}" alt="">`;
       }
@@ -509,11 +605,9 @@
       if (unlocked >= total) {
         unlockBtn.textContent = "Fully Unlocked";
         unlockBtn.disabled = true;
-        unlockBtn.style.opacity = "0.5";
       } else {
         unlockBtn.textContent = "Log Workout – Unlock Next";
         unlockBtn.disabled = false;
-        unlockBtn.style.opacity = "1";
         unlockBtn.style.display = "block";
       }
     }
@@ -531,7 +625,7 @@
       const container = document.getElementById("dashContent");
 
       if (matched.length === 0) {
-        container.innerHTML = `<div class="empty-state">No matches yet.<br>Swipe right on someone to start.</div>`;
+        container.innerHTML = `<div class="empty-state">No matches yet.</div>`;
         return;
       }
 
@@ -543,9 +637,9 @@
         card.className = "dash-card";
         card.onclick = () => showScene(c.id);
         card.innerHTML = `
-          ${c.profile ? `<img src="${c.profile}" alt="">` : `<div style="height:160px;background:#111;"></div>`}
+          ${c.profile ? `<img src="${c.profile}" alt="">` : `<div style="height:170px;background:#111;"></div>`}
           <div class="info">
-            <div class="name">${c.name}, ${c.age}</div>
+            <div class="name">${escapeHtml(c.name)}, ${c.age}</div>
             <div class="sub">${c.unlocked || 1}/${c.media.length} unlocked</div>
           </div>
         `;
@@ -566,7 +660,7 @@
         div.className = "media-item";
         div.innerHTML = `
           <strong>Media ${i + 1}</strong>
-          <input type="text" placeholder="Caption (optional)" 
+          <input type="text" 
             value="${m.caption}" 
             onchange="tempMedia[${i}].caption = this.value"
             style="width:100%;margin:6px 0;padding:8px;border-radius:6px;border:1px solid var(--border);background:#1a1a1f;color:var(--text);font-size:13px;" />
@@ -590,10 +684,11 @@
     function saveCharacter() {
       const name = document.getElementById("addName").value.trim();
       const age = parseInt(document.getElementById("addAge").value) || 0;
-      const bio = document.getElementById("addBio").value.trim();
+      const hair = document.getElementById("addHair").value.trim();
+      const body = document.getElementById("addBody").value.trim();
       const profileInput = document.getElementById("addProfile");
 
-      if (!name) { alert("Name is required"); return; }
+      if (!name) { alert("Name required"); return; }
       if (age < 18) { alert("Age must be 18+"); return; }
 
       const finish = (profileData) => {
@@ -609,7 +704,9 @@
           id: "c" + Date.now(),
           name,
           age,
-          bio,
+          hair,
+          body,
+          desireLine: generateDesireLine(),
           profile: profileData,
           media,
           matched: false,
@@ -627,6 +724,14 @@
       } else {
         finish(null);
       }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     }
 
     load();
