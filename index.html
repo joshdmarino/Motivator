@@ -224,6 +224,8 @@
       overflow: hidden;
       border: 1px solid var(--border);
       cursor: pointer;
+      position: relative;
+      user-select: none;
     }
     .dash-card img {
       width: 100%;
@@ -334,6 +336,44 @@
       margin-left: 8px;
       cursor: pointer;
     }
+
+    /* Action sheet */
+    .action-sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .action-sheet-overlay.show { display: flex; }
+    .action-sheet {
+      background: #1c1c22;
+      width: 100%;
+      max-width: 430px;
+      border-radius: 16px 16px 0 0;
+      padding: 12px 12px 28px;
+      animation: slideUp 0.22s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .action-sheet button {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 16px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+    .action-sheet button:last-child { border-bottom: none; }
+    .action-sheet button.danger { color: #f87171; }
+    .action-sheet button.cancel { color: var(--muted); margin-top: 8px; background: #25252c; border-radius: 12px; }
   </style>
 </head>
 <body>
@@ -443,7 +483,7 @@
     <div class="media-list" id="addMediaList"></div>
     <button class="small-btn" onclick="addMediaField()">+ Add Photo or Video</button>
 
-    <button class="primary-btn" style="margin-top:22px;" onclick="saveCharacter()">Save</button>
+    <button class="primary-btn" style="margin-top:22px;" id="saveBtn" onclick="saveCharacter()">Save</button>
     <button class="secondary-btn" onclick="showDiscover()">Cancel</button>
   </div>
 
@@ -454,6 +494,15 @@
     <button class="nav-item" id="navDash" onclick="showDash()">
       <span>■</span>Matches
     </button>
+  </div>
+
+  <!-- Action sheet for long-press -->
+  <div class="action-sheet-overlay" id="actionSheet">
+    <div class="action-sheet">
+      <button onclick="startEdit()">Edit</button>
+      <button class="danger" onclick="confirmDelete()">Delete</button>
+      <button class="cancel" onclick="closeActionSheet()">Cancel</button>
+    </div>
   </div>
 
   <script>
@@ -467,6 +516,9 @@
     let tempMedia = [];
     let orderedPool = [];
     let db = null;
+    let editingId = null;
+    let longPressTarget = null;
+    let longPressTimer = null;
 
     function openDB() {
       return new Promise((resolve, reject) => {
@@ -626,6 +678,12 @@
       return Array.from(boxes).map(b => b.value);
     }
 
+    function setChecked(containerId, values) {
+      document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach(cb => {
+        cb.checked = values && values.includes(cb.value);
+      });
+    }
+
     function hideAll() {
       document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
       document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
@@ -638,6 +696,7 @@
       document.getElementById("topTitle").textContent = "Discover";
       document.getElementById("topLeftBtn").textContent = "";
       document.getElementById("topRightBtn").textContent = "Add";
+      editingId = null;
       buildWeightedPool();
       renderDiscover();
     }
@@ -655,17 +714,20 @@
     function showAdd() {
       hideAll();
       document.getElementById("addView").classList.add("active");
-      document.getElementById("topTitle").textContent = "New";
+      document.getElementById("topTitle").textContent = editingId ? "Edit" : "New";
       document.getElementById("topLeftBtn").textContent = "Cancel";
       document.getElementById("topRightBtn").textContent = "";
-      document.getElementById("addName").value = "";
-      document.getElementById("addAge").value = "";
-      document.getElementById("addBreasts").value = "";
-      document.getElementById("addTattoos").value = "no";
-      document.getElementById("addProfile").value = "";
-      document.querySelectorAll("#hairChecks input, #bodyChecks input, #piercingChecks input").forEach(c => c.checked = false);
-      tempMedia = [];
-      renderTempMedia();
+      document.getElementById("saveBtn").textContent = editingId ? "Update" : "Save";
+      if (!editingId) {
+        document.getElementById("addName").value = "";
+        document.getElementById("addAge").value = "";
+        document.getElementById("addBreasts").value = "";
+        document.getElementById("addTattoos").value = "no";
+        document.getElementById("addProfile").value = "";
+        document.querySelectorAll("#hairChecks input, #bodyChecks input, #piercingChecks input").forEach(c => c.checked = false);
+        tempMedia = [];
+        renderTempMedia();
+      }
     }
 
     function showScene(id) {
@@ -680,7 +742,59 @@
 
     function handleTopLeft() {
       const title = document.getElementById("topTitle").textContent;
-      if (title === "New" || title === "Scene") showDiscover();
+      if (title === "New" || title === "Edit" || title === "Scene") {
+        editingId = null;
+        showDiscover();
+      }
+    }
+
+    // Long-press handling
+    function startLongPress(id, e) {
+      e.preventDefault();
+      longPressTarget = id;
+      longPressTimer = setTimeout(() => {
+        document.getElementById("actionSheet").classList.add("show");
+      }, 550);
+    }
+    function cancelLongPress() {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    function closeActionSheet() {
+      document.getElementById("actionSheet").classList.remove("show");
+      longPressTarget = null;
+    }
+
+    function startEdit() {
+      const c = characters.find(x => x.id === longPressTarget);
+      if (!c) return;
+      editingId = c.id;
+      closeActionSheet();
+
+      document.getElementById("addName").value = c.name;
+      document.getElementById("addAge").value = c.age;
+      document.getElementById("addBreasts").value = c.breasts || "";
+      document.getElementById("addTattoos").value = c.tattoos || "no";
+      setChecked("hairChecks", c.hair || []);
+      setChecked("bodyChecks", c.body || []);
+      setChecked("piercingChecks", c.piercings || []);
+      tempMedia = (c.media || []).map(m => ({ ...m }));
+      renderTempMedia();
+      showAdd();
+    }
+
+    function confirmDelete() {
+      const c = characters.find(x => x.id === longPressTarget);
+      if (!c) return;
+      if (!confirm(`Delete ${c.name}? This cannot be undone.`)) {
+        closeActionSheet();
+        return;
+      }
+      characters = characters.filter(x => x.id !== longPressTarget);
+      saveCharacters().then(() => {
+        closeActionSheet();
+        renderDash();
+      });
     }
 
     function buildWeightedPool() {
@@ -812,7 +926,7 @@
       const container = document.getElementById("dashContent");
 
       if (matched.length === 0) {
-        container.innerHTML = `<div class="empty-state">No matches yet.</div>`;
+        container.innerHTML = `<div class="empty-state">No matches yet.<br><br><span style="font-size:13px;opacity:0.7">Long-press a card to edit or delete</span></div>`;
         return;
       }
 
@@ -823,6 +937,20 @@
         const card = document.createElement("div");
         card.className = "dash-card";
         card.onclick = () => showScene(c.id);
+
+        // Long-press support
+        card.addEventListener("touchstart", (e) => startLongPress(c.id, e), { passive: false });
+        card.addEventListener("touchend", cancelLongPress);
+        card.addEventListener("touchmove", cancelLongPress);
+        card.addEventListener("mousedown", (e) => startLongPress(c.id, e));
+        card.addEventListener("mouseup", cancelLongPress);
+        card.addEventListener("mouseleave", cancelLongPress);
+        card.addEventListener("contextmenu", (e) => {
+          e.preventDefault();
+          longPressTarget = c.id;
+          document.getElementById("actionSheet").classList.add("show");
+        });
+
         card.innerHTML = `
           ${c.profile ? `<img src="${c.profile}" alt="">` : `<div style="height:170px;background:#111;"></div>`}
           <div class="info">
@@ -880,7 +1008,7 @@
         div.className = "media-item";
         div.innerHTML = `
           <strong>Media ${i + 1}</strong>
-          <input type="text" value="${m.caption}" onchange="tempMedia[${i}].caption = this.value"
+          <input type="text" value="${m.caption || ""}" onchange="tempMedia[${i}].caption = this.value"
             style="width:100%;margin:6px 0;padding:8px;border-radius:6px;border:1px solid var(--border);background:#1a1a1f;color:var(--text);font-size:13px;" />
           <input type="file" accept="image/*,video/*" onchange="handleTempMedia(event, ${i})" />
         `;
@@ -910,21 +1038,37 @@
       const profileInput = document.getElementById("addProfile");
 
       if (!name) { alert("Name required"); return; }
-  
 
       const finish = (profileData) => {
         const media = tempMedia.filter(m => m.data).map(m => ({ type: m.type, data: m.data, caption: m.caption || "" }));
-        if (media.length === 0) media.push({ type: "image", data: profileData || null, caption: "" });
+        if (media.length === 0 && profileData) {
+          media.push({ type: "image", data: profileData, caption: "" });
+        }
 
-        characters.push({
-          id: "c" + Date.now(),
-          name, age, hair, body, breasts, tattoos, piercings,
-          desireLine: generateDesireLine(),
-          profile: profileData,
-          media,
-          matched: false,
-          unlocked: 0
-        });
+        if (editingId) {
+          const idx = characters.findIndex(c => c.id === editingId);
+          if (idx !== -1) {
+            const old = characters[idx];
+            characters[idx] = {
+              ...old,
+              name, age, hair, body, breasts, tattoos, piercings,
+              profile: profileData || old.profile,
+              media: media.length ? media : old.media
+            };
+          }
+          editingId = null;
+        } else {
+          characters.push({
+            id: "c" + Date.now(),
+            name, age, hair, body, breasts, tattoos, piercings,
+            desireLine: generateDesireLine(),
+            profile: profileData,
+            media: media.length ? media : [{ type: "image", data: profileData || null, caption: "" }],
+            matched: false,
+            unlocked: 0
+          });
+        }
+
         saveCharacters().then(() => {
           currentIndex = 0;
           showDiscover();
