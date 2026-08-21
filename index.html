@@ -426,7 +426,6 @@
       <div class="empty-state">No matches yet.</div>
     </div>
 
-    <!-- Manage section -->
     <div class="manage-box" id="manageBox" style="display:none;">
       <label>Manage a character</label>
       <select id="manageSelect" onchange="onManageSelect()">
@@ -597,25 +596,11 @@
       if (r < 0.97) return 10 + Math.floor(Math.random() * 5);
       return 15 + Math.floor(Math.random() * 9);
     }
-    function ageLabel(n) {
-      if (n === 0) return "newborn";
-      if (n === 1) return "1-year-old";
-      if (n <= 5) return n + "-year-old";
-      return n + "";
-    }
+
     function generateDesireLine() {
       const age = randomTargetAge();
-      const label = ageLabel(age);
-      const templates = [
-        `Looking for a ${label}`,
-        `Wants a ${label}`,
-        `Needs a quiet ${label}`,
-        `Searching for her ${label}`,
-        `Ready for a ${label}`,
-        `Hoping for a soft ${label}`,
-        `After a helpless ${label}`
-      ];
-      return templates[Math.floor(Math.random() * templates.length)];
+      if (age === 0) return "Regression age: newborn";
+      return "Regression age: " + age;
     }
 
     function computeDifficulty(c) {
@@ -757,7 +742,6 @@
       }
     }
 
-    // Manage dropdown
     function onManageSelect() {
       const val = document.getElementById("manageSelect").value;
       document.getElementById("manageActions").style.display = val ? "flex" : "none";
@@ -794,6 +778,7 @@
         document.getElementById("manageSelect").value = "";
         document.getElementById("manageActions").style.display = "none";
         renderDash();
+        buildWeightedPool();
       });
     }
 
@@ -927,16 +912,18 @@
       const manageBox = document.getElementById("manageBox");
       const manageSelect = document.getElementById("manageSelect");
 
-      // Populate manage dropdown
+      // Show ALL characters in manage dropdown
       manageSelect.innerHTML = `<option value="">Select someone…</option>`;
-      matched.forEach(c => {
+      characters.forEach(c => {
         const opt = document.createElement("option");
         opt.value = c.id;
-        opt.textContent = `${c.name}, ${c.age}`;
+        opt.textContent = c.matched 
+          ? `${c.name}, ${c.age}` 
+          : `${c.name}, ${c.age} (not matched)`;
         manageSelect.appendChild(opt);
       });
       document.getElementById("manageActions").style.display = "none";
-      manageBox.style.display = matched.length > 0 ? "block" : "none";
+      manageBox.style.display = characters.length > 0 ? "block" : "none";
 
       if (matched.length === 0) {
         container.innerHTML = `<div class="empty-state">No matches yet.</div>`;
@@ -1037,7 +1024,6 @@
       const profileInput = document.getElementById("addProfile");
 
       if (!name) { alert("Name required"); return; }
-  
 
       const finish = (profileData) => {
         const media = tempMedia.filter(m => m.data).map(m => ({ type: m.type, data: m.data, caption: m.caption || "" }));
