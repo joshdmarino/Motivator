@@ -224,8 +224,6 @@
       overflow: hidden;
       border: 1px solid var(--border);
       cursor: pointer;
-      position: relative;
-      user-select: none;
     }
     .dash-card img {
       width: 100%;
@@ -237,6 +235,48 @@
     .dash-card .info { padding: 9px 10px; }
     .dash-card .name { font-weight: 600; font-size: 13.5px; }
     .dash-card .sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+    .manage-box {
+      margin-top: 20px;
+      padding: 14px;
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .manage-box label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .manage-box select {
+      width: 100%;
+      background: #1a1a1f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      color: var(--text);
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .manage-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .manage-actions button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #1a1a1f;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .manage-actions button.danger {
+      color: #f87171;
+      border-color: #7f1d1d;
+    }
 
     #addView { padding: 12px 14px 40px; }
     .field { margin-bottom: 14px; }
@@ -336,44 +376,6 @@
       margin-left: 8px;
       cursor: pointer;
     }
-
-    /* Action sheet */
-    .action-sheet-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      z-index: 100;
-      display: none;
-      align-items: flex-end;
-      justify-content: center;
-    }
-    .action-sheet-overlay.show { display: flex; }
-    .action-sheet {
-      background: #1c1c22;
-      width: 100%;
-      max-width: 430px;
-      border-radius: 16px 16px 0 0;
-      padding: 12px 12px 28px;
-      animation: slideUp 0.22s ease;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(40px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .action-sheet button {
-      width: 100%;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-size: 16px;
-      padding: 16px;
-      text-align: center;
-      cursor: pointer;
-      border-bottom: 1px solid var(--border);
-    }
-    .action-sheet button:last-child { border-bottom: none; }
-    .action-sheet button.danger { color: #f87171; }
-    .action-sheet button.cancel { color: var(--muted); margin-top: 8px; background: #25252c; border-radius: 12px; }
   </style>
 </head>
 <body>
@@ -423,7 +425,20 @@
     <div id="dashContent">
       <div class="empty-state">No matches yet.</div>
     </div>
-    <div style="padding: 16px 12px 0; display:flex; gap:8px;">
+
+    <!-- Manage section -->
+    <div class="manage-box" id="manageBox" style="display:none;">
+      <label>Manage a character</label>
+      <select id="manageSelect" onchange="onManageSelect()">
+        <option value="">Select someone…</option>
+      </select>
+      <div class="manage-actions" id="manageActions" style="display:none;">
+        <button onclick="startEditFromManage()">Edit</button>
+        <button class="danger" onclick="deleteFromManage()">Delete</button>
+      </div>
+    </div>
+
+    <div style="padding: 16px 0 0; display:flex; gap:8px;">
       <button class="secondary-btn" style="margin:0;" onclick="exportData()">Export Backup</button>
       <button class="secondary-btn" style="margin:0;" onclick="document.getElementById('importFile').click()">Import Backup</button>
       <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)" />
@@ -484,7 +499,7 @@
     <button class="small-btn" onclick="addMediaField()">+ Add Photo or Video</button>
 
     <button class="primary-btn" style="margin-top:22px;" id="saveBtn" onclick="saveCharacter()">Save</button>
-    <button class="secondary-btn" onclick="showDiscover()">Cancel</button>
+    <button class="secondary-btn" onclick="cancelEdit()">Cancel</button>
   </div>
 
   <div class="bottom-nav">
@@ -494,15 +509,6 @@
     <button class="nav-item" id="navDash" onclick="showDash()">
       <span>■</span>Matches
     </button>
-  </div>
-
-  <!-- Action sheet for long-press -->
-  <div class="action-sheet-overlay" id="actionSheet">
-    <div class="action-sheet">
-      <button onclick="startEdit()">Edit</button>
-      <button class="danger" onclick="confirmDelete()">Delete</button>
-      <button class="cancel" onclick="closeActionSheet()">Cancel</button>
-    </div>
   </div>
 
   <script>
@@ -517,8 +523,6 @@
     let orderedPool = [];
     let db = null;
     let editingId = null;
-    let longPressTarget = null;
-    let longPressTimer = null;
 
     function openDB() {
       return new Promise((resolve, reject) => {
@@ -730,6 +734,11 @@
       }
     }
 
+    function cancelEdit() {
+      editingId = null;
+      showDiscover();
+    }
+
     function showScene(id) {
       activeId = id;
       hideAll();
@@ -748,29 +757,19 @@
       }
     }
 
-    // Long-press handling
-    function startLongPress(id, e) {
-      e.preventDefault();
-      longPressTarget = id;
-      longPressTimer = setTimeout(() => {
-        document.getElementById("actionSheet").classList.add("show");
-      }, 550);
-    }
-    function cancelLongPress() {
-      clearTimeout(longPressTimer);
-      longPressTimer = null;
-    }
-    function closeActionSheet() {
-      document.getElementById("actionSheet").classList.remove("show");
-      longPressTarget = null;
+    // Manage dropdown
+    function onManageSelect() {
+      const val = document.getElementById("manageSelect").value;
+      document.getElementById("manageActions").style.display = val ? "flex" : "none";
     }
 
-    function startEdit() {
-      const c = characters.find(x => x.id === longPressTarget);
+    function startEditFromManage() {
+      const id = document.getElementById("manageSelect").value;
+      if (!id) return;
+      const c = characters.find(x => x.id === id);
       if (!c) return;
-      editingId = c.id;
-      closeActionSheet();
 
+      editingId = c.id;
       document.getElementById("addName").value = c.name;
       document.getElementById("addAge").value = c.age;
       document.getElementById("addBreasts").value = c.breasts || "";
@@ -783,16 +782,17 @@
       showAdd();
     }
 
-    function confirmDelete() {
-      const c = characters.find(x => x.id === longPressTarget);
+    function deleteFromManage() {
+      const id = document.getElementById("manageSelect").value;
+      if (!id) return;
+      const c = characters.find(x => x.id === id);
       if (!c) return;
-      if (!confirm(`Delete ${c.name}? This cannot be undone.`)) {
-        closeActionSheet();
-        return;
-      }
-      characters = characters.filter(x => x.id !== longPressTarget);
+      if (!confirm(`Delete ${c.name}? This cannot be undone.`)) return;
+
+      characters = characters.filter(x => x.id !== id);
       saveCharacters().then(() => {
-        closeActionSheet();
+        document.getElementById("manageSelect").value = "";
+        document.getElementById("manageActions").style.display = "none";
         renderDash();
       });
     }
@@ -924,9 +924,22 @@
     function renderDash() {
       const matched = characters.filter(c => c.matched);
       const container = document.getElementById("dashContent");
+      const manageBox = document.getElementById("manageBox");
+      const manageSelect = document.getElementById("manageSelect");
+
+      // Populate manage dropdown
+      manageSelect.innerHTML = `<option value="">Select someone…</option>`;
+      matched.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = `${c.name}, ${c.age}`;
+        manageSelect.appendChild(opt);
+      });
+      document.getElementById("manageActions").style.display = "none";
+      manageBox.style.display = matched.length > 0 ? "block" : "none";
 
       if (matched.length === 0) {
-        container.innerHTML = `<div class="empty-state">No matches yet.<br><br><span style="font-size:13px;opacity:0.7">Long-press a card to edit or delete</span></div>`;
+        container.innerHTML = `<div class="empty-state">No matches yet.</div>`;
         return;
       }
 
@@ -937,20 +950,6 @@
         const card = document.createElement("div");
         card.className = "dash-card";
         card.onclick = () => showScene(c.id);
-
-        // Long-press support
-        card.addEventListener("touchstart", (e) => startLongPress(c.id, e), { passive: false });
-        card.addEventListener("touchend", cancelLongPress);
-        card.addEventListener("touchmove", cancelLongPress);
-        card.addEventListener("mousedown", (e) => startLongPress(c.id, e));
-        card.addEventListener("mouseup", cancelLongPress);
-        card.addEventListener("mouseleave", cancelLongPress);
-        card.addEventListener("contextmenu", (e) => {
-          e.preventDefault();
-          longPressTarget = c.id;
-          document.getElementById("actionSheet").classList.add("show");
-        });
-
         card.innerHTML = `
           ${c.profile ? `<img src="${c.profile}" alt="">` : `<div style="height:170px;background:#111;"></div>`}
           <div class="info">
@@ -1038,6 +1037,7 @@
       const profileInput = document.getElementById("addProfile");
 
       if (!name) { alert("Name required"); return; }
+  
 
       const finish = (profileData) => {
         const media = tempMedia.filter(m => m.data).map(m => ({ type: m.type, data: m.data, caption: m.caption || "" }));
